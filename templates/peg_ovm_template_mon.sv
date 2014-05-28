@@ -1,15 +1,15 @@
 /*
  --------------------------------------------------------------------------
-   Synesthesia - Copyright (C) 2012 Gregory Matthew James.
+   Pegasus - Copyright (C) 2012 Gregory Matthew James.
 
-   This file is part of Synesthesia.
+   This file is part of Pegasus.
 
-   Synesthesia is free; you can redistribute it and/or modify
+   Pegasus is free; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 3 of the License, or
    (at your option) any later version.
 
-   Synesthesia is distributed in the hope that it will be useful,
+   Pegasus is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
    GNU General Public License for more details.
@@ -21,7 +21,7 @@
 
 /*
  --------------------------------------------------------------------------
- -- Project Code      : synesthesia
+ -- Project Code      : pegasus
  -- Component Name    : <mon_name>
  -- Author            : 
  -- Function          : 
