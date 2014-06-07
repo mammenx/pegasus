@@ -41,6 +41,7 @@ interface peg_pkt_xfr_intf  #(
   logic               valid;
   logic [DATA_W-1:0]  data;
   logic               ready;
+  logic               error;
 
   //Modports
   modport   master  (
@@ -48,7 +49,8 @@ interface peg_pkt_xfr_intf  #(
                       output  eop,
                       output  valid,
                       output  data,
-                      input   ready
+                      input   ready,
+                      output  error
                     );
 
   modport   slave   (
@@ -56,7 +58,8 @@ interface peg_pkt_xfr_intf  #(
                       input   eop,
                       input   valid,
                       input   data,
-                      output  ready
+                      output  ready,
+                      input   error
                     );
 
 
@@ -70,6 +73,8 @@ endinterface  //  peg_pkt_xfr_intf
  
 
  -- <Log>
+
+[07-06-2014  09:42:00 PM][mammenx] Added error signal to interface.
 
 
  --------------------------------------------------------------------------
