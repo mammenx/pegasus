@@ -105,7 +105,7 @@ module pkt_ff_wptr  #(PTR_W = 8)
   end
 
   //Reset the wptr to last SOP location
-  assign  wptr_rewind_n_c     =   (valid & error) ? 1'b0  : 1'b1;
+  assign  wptr_rewind_n_c     =   (valid & error) ? 1'b0  : rst_n;
 
   //Logic to decide when to increment wptr
   assign  wptr_inc_en_c       =   valid & ~error;
@@ -138,6 +138,8 @@ endmodule // pkt_ff_wptr
  
 
  -- <Log>
+
+[08-06-2014  02:11:10 PM][mammenx] Modified gry_cntr reset signal
 
 [08-06-2014  02:07:20 PM][mammenx] Brought out gry_cnt_nxt port
 
