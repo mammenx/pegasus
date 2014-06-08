@@ -40,6 +40,8 @@ module gry_cntr #(WIDTH = 8)
     clk,
     rst_n,
 
+    rst_val,
+
     en,
     gry_cnt
 
@@ -56,6 +58,8 @@ module gry_cntr #(WIDTH = 8)
   input                       clk;
   input                       rst_n;
 
+  input   [WIDTH-1:0]         rst_val;
+
   input                       en;
 
 //----------------------- Inout Declarations ------------------------------
@@ -71,7 +75,10 @@ module gry_cntr #(WIDTH = 8)
   logic [WIDTH-1:0]           bin_cnt_f;
 
 //----------------------- Internal Wire Declarations ----------------------
+  logic [WIDTH-1:0]           rst_val2bin_c;
   logic [WIDTH-1:0]           bin_cnt_nxt_c;
+
+  genvar  i;
 
 //----------------------- Internal Interface Declarations -----------------
 
@@ -81,12 +88,20 @@ module gry_cntr #(WIDTH = 8)
 
 //----------------------- Start of Code -----------------------------------
 
+  //Convert to binary
+  generate
+    for(i=WIDTH-1;  i>=0; i--)
+    begin : RST_VAL2BIN
+      assign  rst_val2bin_c[i]  = ^rst_val[WIDTH-1:i];
+    end
+  endgenerate
+
   always@(posedge clk,  negedge rst_n)
   begin
     if(~rst_n)
     begin
-      bin_cnt_f               <=  0;
-      gry_cnt                 <=  0;
+      bin_cnt_f               <=  rst_val2bin_c;
+      gry_cnt                 <=  rst_val;
     end
     else
     begin
@@ -106,6 +121,8 @@ endmodule // gry_cntr
  
 
  -- <Log>
+
+[08-06-2014  12:46:15 PM][mammenx] Modified rest load
 
 [07-06-2014  09:55:48 PM][mammenx] Initial version
 
