@@ -46,6 +46,8 @@ endinterface  //  clk_rst_sync_intf
 
  -- <Log>
 
+[08-06-2014  02:25:23 PM][mammenx] Moved under intf directory
+
 [08-06-2014  02:20:11 PM][mammenx] Initial Commit
 
 [28-05-14 20:18:21] [mammenx] Moved log section to bottom of file
