@@ -43,7 +43,8 @@ module gry_cntr #(WIDTH = 8)
     rst_val,
 
     en,
-    gry_cnt
+    gry_cnt,
+    gry_cnt_nxt
 
 
   //--------------------- Interfaces --------------------
@@ -67,6 +68,7 @@ module gry_cntr #(WIDTH = 8)
 
 //----------------------- Output Declarations -----------------------------
   output  logic [WIDTH-1:0]   gry_cnt;
+  output  logic [WIDTH-1:0]   gry_cnt_nxt;
 
 //----------------------- Output Register Declaration ---------------------
 
@@ -106,11 +108,13 @@ module gry_cntr #(WIDTH = 8)
     else
     begin
       bin_cnt_f               <=  bin_cnt_nxt_c;
-      gry_cnt                 <=  bin_cnt_nxt_c ^ {1'b0,bin_cnt_nxt_c[WIDTH-1:1]};
+      gry_cnt                 <=  gry_cnt_nxt;
     end
   end
 
   assign  bin_cnt_nxt_c = bin_cnt_f + en;
+
+  assign  gry_cnt_nxt   = bin_cnt_nxt_c ^ {1'b0,bin_cnt_nxt_c[WIDTH-1:1]};
 
 endmodule // gry_cntr
 
@@ -121,6 +125,8 @@ endmodule // gry_cntr
  
 
  -- <Log>
+
+[08-06-2014  02:07:20 PM][mammenx] Brought out gry_cnt_nxt port
 
 [08-06-2014  12:46:15 PM][mammenx] Modified rest load
 

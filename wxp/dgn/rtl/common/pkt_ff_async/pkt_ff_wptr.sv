@@ -111,16 +111,17 @@ module pkt_ff_wptr  #(PTR_W = 8)
   assign  wptr_inc_en_c       =   valid & ~error;
 
   //Implement wptr as a gray counter
-  gry_cntr      u_wptr_gry_cntr
+  gry_cntr        u_wptr_gry_cntr
   (
 
-    .clk        (clk),
-    .rst_n      (wptr_rewind_n_c),
+    .clk          (clk),
+    .rst_n        (wptr_rewind_n_c),
 
-    .rst_val    (sop_ptr_f),
+    .rst_val      (sop_ptr_f),
 
-    .en         (wptr_inc_en_c),
-    .gry_cnt    (wptr)
+    .en           (wptr_inc_en_c),
+    .gry_cnt      (wptr),
+    .gry_cnt_nxt  ()
 
   );
 
@@ -137,6 +138,8 @@ endmodule // pkt_ff_wptr
  
 
  -- <Log>
+
+[08-06-2014  02:07:20 PM][mammenx] Brought out gry_cnt_nxt port
 
 [08-06-2014  12:54:08 PM][mammenx] Initial Commit
 
