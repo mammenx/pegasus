@@ -68,7 +68,7 @@ module dd_sync  #(WIDTH = 1,  STAGES  = 2,  RST_VAL = 0)
 
 
 //----------------------- Internal Register Declarations ------------------
-  logic   [WIDTH-1:0]         sync_pipe_f [STAGES-1:0];
+  logic   [WIDTH-1:0]         sync_pipe_f [0:STAGES-1];
 
 //----------------------- Internal Wire Declarations ----------------------
 
@@ -111,6 +111,8 @@ endmodule // dd_sync
  
 
  -- <Log>
+
+[08-06-2014  11:32:22 AM][mammenx] Corrected multi-dimension order for sync_pipe_f
 
 [08-06-2014  11:11:26 AM][mammenx] Added RST_VAL parameter
 
