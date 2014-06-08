@@ -29,11 +29,11 @@
  --------------------------------------------------------------------------
 */
 
-interface clk_rst_sync_intf  (input logic clk_ir,  rst_sync_l);
+interface clk_rst_sync_intf  (input logic clk,  rst_n);
 
   //Modport
   modport sync  (
-                  input clk_ir, rst_sync_l
+                  input clk, rst_n
                 );
 
 endinterface  //  clk_rst_sync_intf
@@ -45,6 +45,8 @@ endinterface  //  clk_rst_sync_intf
  
 
  -- <Log>
+
+[08-06-2014  02:36:55 PM][mammenx] Modified signal names
 
 [08-06-2014  02:25:23 PM][mammenx] Moved under intf directory
 

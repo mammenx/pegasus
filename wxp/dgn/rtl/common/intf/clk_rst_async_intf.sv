@@ -31,13 +31,13 @@
 
 interface clk_rst_async_intf  #(parameter NO_OF_SYNC_STAGES = 2)
 
-                              (input logic clk_ir,  rst_async_il);
+                              (input logic clk,  rst_async_n);
 
   //Synchronizer flops
   logic [NO_OF_SYNC_STAGES-1:0]   sync_f;
 
   //Synchronous reset
-  logic rst_sync_l;
+  logic rst_sync_n;
 
 
   /*
@@ -45,23 +45,23 @@ interface clk_rst_async_intf  #(parameter NO_OF_SYNC_STAGES = 2)
     * Assertion of rst_sync_l should be immediate i.e. asynchronous
     * Deassertion of rst_sync_l should be wrt clk_r
   */
-  always_ff@(posedge  clk_ir, negedge  rst_async_il)
+  always_ff@(posedge  clk, negedge  rst_async_n)
   begin : RESET_SYNCHRONIZATION
-    if(~rst_async_il)
+    if(~rst_async_n)
     begin
       sync_f                  <=  '0;
-      rst_sync_l              <=  '0;
+      rst_sync_n              <=  '0;
     end
     else
     begin
-      {rst_sync_l,  sync_f}   <=  {sync_f,  1'b1};
+      {rst_sync_n,  sync_f}   <=  {sync_f,  1'b1};
     end
   end : RESET_SYNCHRONIZATION
 
 
   //Modport
   modport sync  (
-                  input clk_ir, rst_sync_l
+                  input clk, rst_sync_n
                 );
 
 
@@ -74,6 +74,8 @@ endinterface  //  clk_rst_async_intf
  
 
  -- <Log>
+
+[08-06-2014  02:36:55 PM][mammenx] Modified signal names
 
 [08-06-2014  02:25:23 PM][mammenx] Moved under intf directory
 
