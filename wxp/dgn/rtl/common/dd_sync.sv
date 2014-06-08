@@ -33,7 +33,7 @@
 `timescale 1ns / 10ps
 
 
-module dd_sync  #(WIDTH = 1,  STAGES  = 2)
+module dd_sync  #(WIDTH = 1,  STAGES  = 2,  RST_VAL = 0)
 
 (
 
@@ -90,7 +90,7 @@ module dd_sync  #(WIDTH = 1,  STAGES  = 2)
       begin
         if(~rst_n)
         begin
-          sync_pipe_f[i]      <=  0;
+          sync_pipe_f[i]      <=  RST_VAL;
         end
         else
         begin
@@ -111,6 +111,8 @@ endmodule // dd_sync
  
 
  -- <Log>
+
+[08-06-2014  11:11:26 AM][mammenx] Added RST_VAL parameter
 
 [08-06-2014  11:09:00 AM][mammenx] Initial Version
 
