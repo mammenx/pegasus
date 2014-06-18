@@ -36,6 +36,23 @@ package peg_l2_pkg;
 
   parameter RS_TYPE           = "RMII";
 
+
+  //802.1 VLAN Tag Control information structure
+  typedef struct  packed  {
+    logic [2:0]   pcp;
+    logic         dei;
+    logic [11:0]  vid;
+  } vlan_tci_t;
+
+  //MAC Header structure
+  typedef struct  packed  {
+    logic [47:0]  da;
+    logic [47:0]  sa;
+    logic [15:0]  len;
+    logic [15:0]  ptype;
+    vlan_tci_t    vlan_tci;
+  } l2_mac_hdr_t;
+
 endpackage  //  peg_l2_pkg
 
 /*
@@ -45,6 +62,8 @@ endpackage  //  peg_l2_pkg
  
 
  -- <Log>
+
+[18-06-2014  08:39:55 PM][mammenx] Added VLAN Tag & MAC Header structure types
 
 [18-06-2014  07:27:24 PM][mammenx] Initial Commit
 
