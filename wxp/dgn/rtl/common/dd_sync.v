@@ -68,7 +68,7 @@ module dd_sync  #(WIDTH = 1,  STAGES  = 2,  RST_VAL = 0)
 
 
 //----------------------- Internal Register Declarations ------------------
-  logic   [WIDTH-1:0]         sync_pipe_f [0:STAGES-1];
+  reg     [WIDTH-1:0]         sync_pipe_f [0:STAGES-1];
 
 //----------------------- Internal Wire Declarations ----------------------
 
@@ -111,6 +111,8 @@ endmodule // dd_sync
  
 
  -- <Log>
+
+[28-06-2014  03:30:07 PM][mammenx] Moved to Verilog
 
 [08-06-2014  11:32:22 AM][mammenx] Corrected multi-dimension order for sync_pipe_f
 

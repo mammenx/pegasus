@@ -22,32 +22,35 @@
 /*
  --------------------------------------------------------------------------
  -- Project Code      : pegasus
- -- Module Name       : pkt_ff_rptr
+ -- Module Name       : gry_cntr
  -- Author            : mammenx
  -- Associated modules: 
- -- Function          : This module maintains logic for updating the read
-                        pointer.
+ -- Function          : A parameterized gray code counter.
  --------------------------------------------------------------------------
 */
 
 `timescale 1ns / 10ps
 
 
-module pkt_ff_rptr  #(PTR_W = 8)
-(
+module gry_cntr #(WIDTH = 8)
+
+  (
 
   //--------------------- Misc Ports (Logic)  -----------
     clk,
     rst_n,
 
-    rd_en,
+    rst_val,
 
-    rptr
+    en,
+    gry_cnt,
+    gry_cnt_nxt
+
 
   //--------------------- Interfaces --------------------
 
 
-);
+  );
 
 //----------------------- Global parameters Declarations ------------------
 
@@ -56,22 +59,30 @@ module pkt_ff_rptr  #(PTR_W = 8)
   input                       clk;
   input                       rst_n;
 
-  input                       rd_en;
+  input   [WIDTH-1:0]         rst_val;
+
+  input                       en;
 
 //----------------------- Inout Declarations ------------------------------
 
 
 //----------------------- Output Declarations -----------------------------
-  output  [PTR_W-1:0]         rptr;
+  output  [WIDTH-1:0]         gry_cnt;
+  output  [WIDTH-1:0]         gry_cnt_nxt;
 
 //----------------------- Output Register Declaration ---------------------
+  reg     [WIDTH-1:0]         gry_cnt;
+  reg     [WIDTH-1:0]         gry_cnt_nxt;
 
 
 //----------------------- Internal Register Declarations ------------------
-
+  reg     [WIDTH-1:0]         bin_cnt_f;
 
 //----------------------- Internal Wire Declarations ----------------------
+  reg     [WIDTH-1:0]         rst_val2bin_c;
+  reg     [WIDTH-1:0]         bin_cnt_nxt_c;
 
+  genvar  i;
 
 //----------------------- Internal Interface Declarations -----------------
 
@@ -81,25 +92,33 @@ module pkt_ff_rptr  #(PTR_W = 8)
 
 //----------------------- Start of Code -----------------------------------
 
-  //Implement rptr as a gray counter
-  gry_cntr        u_rptr_gry_cntr
-  (
+  //Convert to binary
+  generate
+    for(i=WIDTH-1;  i>=0; i--)
+    begin : RST_VAL2BIN
+      assign  rst_val2bin_c[i]  = ^rst_val[WIDTH-1:i];
+    end
+  endgenerate
 
-    .clk          (clk),
-    .rst_n        (rst_n),
+  always@(posedge clk,  negedge rst_n)
+  begin
+    if(~rst_n)
+    begin
+      bin_cnt_f               <=  rst_val2bin_c;
+      gry_cnt                 <=  rst_val;
+    end
+    else
+    begin
+      bin_cnt_f               <=  bin_cnt_nxt_c;
+      gry_cnt                 <=  gry_cnt_nxt;
+    end
+  end
 
-    .rst_val      ({PTR_W{1'b0}}),
+  assign  bin_cnt_nxt_c = bin_cnt_f + en;
 
-    .en           (rd_en),
-    .gry_cnt      (),
-    .gry_cnt_nxt  (rptr)
+  assign  gry_cnt_nxt   = bin_cnt_nxt_c ^ {1'b0,bin_cnt_nxt_c[WIDTH-1:1]};
 
-  );
-
-  defparam  u_rptr_gry_cntr.WIDTH   = PTR_W;
-
-
-endmodule // pkt_ff_rptr
+endmodule // gry_cntr
 
 /*
  --------------------------------------------------------------------------
@@ -109,7 +128,13 @@ endmodule // pkt_ff_rptr
 
  -- <Log>
 
-[08-06-2014  02:14:35 PM][mammenx] Initial Commit
+[28-06-2014  03:30:07 PM][mammenx] Moved to Verilog
+
+[08-06-2014  02:07:20 PM][mammenx] Brought out gry_cnt_nxt port
+
+[08-06-2014  12:46:15 PM][mammenx] Modified rest load
+
+[07-06-2014  09:55:48 PM][mammenx] Initial version
 
 [28-05-14 20:18:21] [mammenx] Moved log section to bottom of file
 
