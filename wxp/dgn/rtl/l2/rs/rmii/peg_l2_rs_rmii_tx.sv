@@ -33,27 +33,42 @@
 `timescale 1ns / 10ps
 
 
-module peg_l2_rs_rmii_tx (
+module peg_l2_rs_rmii_tx #(
+
+  parameter   PKT_DATA_W        = 64,
+  parameter   IFG               = 96
+
+)
+
+(
 
   //--------------------- Misc Ports (Logic)  -----------
+  input                       rst_n,
+
+  //Config signals
+  input                       config_rs_mii_speed_100_n_10,
+
+  //Packet interface from MAC TX
+  input                       pkt_valid,
+  input                       pkt_sop,
+  input                       pkt_eop,
+  input   [PKT_DATA_W-1:0]    pkt_data,
+  output                      pkt_ready,
+  input                       pkt_error,
+
+  //RMII interface to PHY
+  output  [1:0]               rmii_txd,
+  output                      rmii_tx_en,
+  input                       rmii_ref_clk
 
 
   //--------------------- Interfaces --------------------
-  clk_rst_sync_intf           cr_intf,
 
-  peg_l2_config_intf          config_intf,  //rs
-
-  peg_pkt_xfr_intf            pkt_intf,     //slave, 64b
-
-  peg_l2_rmii_intf            mii_intf      //mac_tx
-
-                );
+);
 
 //----------------------- Global parameters Declarations ------------------
-  import  peg_l2_pkg::*;
+  `include  "peg_l2_params.sv"
 
-  parameter   PKT_DATA_W        = 64;
-  parameter   IFG               = 96;
   localparam  IFG_100MBPS       = (96 / 2)  - 1;
   localparam  IFG_10MBPS        = (IFG_100MBPS * 10)  - 1;
   localparam  IFG_CNTR_W        = $clog2(IFG_10MBPS); //worst case
@@ -71,19 +86,19 @@ module peg_l2_rs_rmii_tx (
 
 
 //----------------------- Internal Register Declarations ------------------
-  logic [3:0]                 sample_cntr_f;
-  logic                       sample_cntr_en_c;
-  logic [4:0]                 data_cntr_f;
+  reg   [3:0]                 sample_cntr_f;
+  reg                         sample_cntr_en_c;
+  reg   [4:0]                 data_cntr_f;
 
-  logic [IFG_CNTR_W-1:0]      ifg_cntr_f;
+  reg   [IFG_CNTR_W-1:0]      ifg_cntr_f;
 
 //----------------------- Internal Wire Declarations ----------------------
-  logic                       sample_rdy_c;
-  logic                       wrap_data_cntr_c;
-  logic [2:0]                 data_cntr_byte_w;
+  wire                        sample_rdy_c;
+  wire                        wrap_data_cntr_c;
+  wire  [2:0]                 data_cntr_byte_w;
 
-  logic [IFG_CNTR_W-1:0]      ifg_val_c;
-  logic                       ifg_rdy_c;
+  wire  [IFG_CNTR_W-1:0]      ifg_val_c;
+  wire                        ifg_rdy_c;
 
 //----------------------- Internal Interface Declarations -----------------
 
@@ -101,9 +116,9 @@ enum  logic [1:0] { IDLE_S    = 2'd0,
   /*
     * Main FSM
   */
-  always_ff@(posedge  mii_intf.ref_clk, negedge cr_intf.rst_n)
+  always@(posedge  rmii_ref_clk, negedge rst_n)
   begin
-    if(~cr_intf.rst_n)
+    if(~rst_n)
     begin
       fsm_pstate              <=  IDLE_S;
       sample_cntr_f           <=  0;
@@ -114,7 +129,7 @@ enum  logic [1:0] { IDLE_S    = 2'd0,
     begin
       fsm_pstate              <=  next_state;
 
-      if(config_intf.rs_mii_speed_100_n_10) //100Mbps mode
+      if(config_rs_mii_speed_100_n_10) //100Mbps mode
       begin
         sample_cntr_f         <=  4'd9;
       end
@@ -167,12 +182,12 @@ enum  logic [1:0] { IDLE_S    = 2'd0,
   assign  data_cntr_byte_w    =   data_cntr_f[4:2]; //get num of bytes
 
   //Select the ifg value based on configuration
-  assign  ifg_val_c           =   config_intf.rs_mii_speed_100_n_10 ? IFG_100MBPS : IFG_10MBPS;
+  assign  ifg_val_c           =   config_rs_mii_speed_100_n_10 ? IFG_100MBPS : IFG_10MBPS;
 
   //Check if the IFG condition is met -> counter is zero
   assign  ifg_rdy_c           =   (ifg_cntr_f ==  {IFG_CNTR_W{1'b0}})  ? 1'b1  : 1'b0;
 
-  always_comb
+  always@(*)
   begin
     next_state    =   fsm_pstate;
 
@@ -180,9 +195,9 @@ enum  logic [1:0] { IDLE_S    = 2'd0,
 
       IDLE_S  :
       begin
-        pkt_intf.ready        =   ~pkt_intf.valid;
+        pkt_ready        =   ~pkt_valid;
 
-        if(pkt_intf.valid  & pkt_intf.sop)
+        if(pkt_valid  & pkt_sop)
         begin
           next_state          =   XMT_S;
         end
@@ -190,9 +205,9 @@ enum  logic [1:0] { IDLE_S    = 2'd0,
 
       XMT_S :
       begin
-        pkt_intf.ready        =   wrap_data_cntr_c;
+        pkt_ready        =   wrap_data_cntr_c;
 
-        if(pkt_intf.valid & pkt_intf.eop  & wrap_data_cntr_c)
+        if(pkt_valid & pkt_eop  & wrap_data_cntr_c)
         begin
           next_state          =   IFG_S;
         end
@@ -200,7 +215,7 @@ enum  logic [1:0] { IDLE_S    = 2'd0,
 
       IFG_S :
       begin
-        pkt_intf.ready        =   1'b0;
+        pkt_ready        =   1'b0;
 
         if(ifg_rdy_c)
         begin
@@ -212,12 +227,12 @@ enum  logic [1:0] { IDLE_S    = 2'd0,
   end
 
   /*  RMII Interface logic  */
-  always_ff@(posedge  mii_intf.ref_clk, negedge cr_intf.rst_n)
+  always@(posedge  rmii_ref_clk, negedge rst_n)
   begin
-    if(~cr_intf.rst_n)
+    if(~rst_n)
     begin
-      mii_intf.txd            <=  0;
-      mii_intf.tx_en          <=  0;
+      rmii_txd            <=  0;
+      rmii_tx_en          <=  0;
     end
     else
     begin
@@ -225,23 +240,23 @@ enum  logic [1:0] { IDLE_S    = 2'd0,
 
         IDLE_S  :
         begin
-          if(pkt_intf.valid  & pkt_intf.sop)
+          if(pkt_valid  & pkt_sop)
           begin
-            mii_intf.txd      <=  pkt_intf.data[data_cntr_f +:  2];
-            mii_intf.tx_en    <=  1'b1;
+            rmii_txd      <=  pkt_data[data_cntr_f +:  2];
+            rmii_tx_en    <=  1'b1;
           end
         end
 
         XMT_S :
         begin
-          mii_intf.tx_en      <=  (pkt_intf.valid & pkt_intf.eop) : ~wrap_data_cntr_c : 1'b1;
-          mii_intf.txd        <=  pkt_intf.data[data_cntr_f +:  2];
+          rmii_tx_en      <=  (pkt_valid & pkt_eop) : ~wrap_data_cntr_c : 1'b1;
+          rmii_txd        <=  pkt_data[data_cntr_f +:  2];
         end
 
         default :
         begin
-          mii_intf.tx_en      <=  0;
-          mii_intf.txd        <=  0;
+          rmii_tx_en      <=  0;
+          rmii_txd        <=  0;
         end
 
       endcase
@@ -257,6 +272,8 @@ endmodule // peg_l2_rs_rmii_tx
  
 
  -- <Log>
+
+[28-06-2014  04:42:07 PM][mammenx] Removed System Verilog stuff except fsm enum
 
 [18-06-2014  07:27:24 PM][mammenx] Initial Commit
 

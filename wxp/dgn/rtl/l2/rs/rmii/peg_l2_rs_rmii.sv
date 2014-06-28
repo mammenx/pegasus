@@ -32,22 +32,47 @@
 `timescale 1ns / 10ps
 
 
-module peg_l2_rs_rmii (
+module peg_l2_rs_rmii #(
 
+  parameter PKT_DATA_W  = 64
+
+)
+
+(
   //--------------------- Misc Ports (Logic)  -----------
+  input                       rst_n,
+
+  //Config signals
+  input                       config_rs_mii_speed_100_n_10,
+
+  //Packet interface from MAC TX
+  input                       pkt_tx_valid,
+  input                       pkt_tx_sop,
+  input                       pkt_tx_eop,
+  input   [PKT_DATA_W-1:0]    pkt_tx_data,
+  output                      pkt_tx_ready,
+  input                       pkt_tx_error,
+
+  //Packet interface to MAC RX
+  output                      pkt_rx_valid,
+  output                      pkt_rx_sop,
+  output                      pkt_rx_eop,
+  output  [PKT_DATA_W-1:0]    pkt_rx_data,
+  input                       pkt_rx_ready,
+  output                      pkt_rx_error,
+
+  //RMII Interface to PHY
+  input                       rmii_rx_er,
+  input                       rmii_crs_dv,
+  input   [1:0]               rmii_rxd,
+  output  [1:0]               rmii_txd,
+  output                      rmii_tx_en,
+  input                       rmii_ref_clk
 
 
   //--------------------- Interfaces --------------------
-  clk_rst_sync_intf           cr_intf,
 
-  peg_l2_config_intf          config_intf,  //rs
-
-  peg_pkt_xfr_intf            tx_pkt_intf,  //slave, 64b
-  peg_pkt_xfr_intf            rx_pkt_intf,  //master, 64b
-
-  peg_l2_rmii_intf            rmii_intf
-
-  );
+);
 
 //----------------------- Global parameters Declarations ------------------
 
@@ -79,31 +104,46 @@ module peg_l2_rs_rmii (
 //----------------------- Start of Code -----------------------------------
 
   /*  TX  */
-  peg_l2_rs_rmii_tx           u_rmii_tx
+  peg_l2_rs_rmii_tx#(.PKT_DATA_W(PKT_DATA_W))  u_rmii_tx
   (
 
-    .cr_intf                  (cr_intf),
+    .rst_n                        (rst_n),
 
-    .config_intf              (config_intf),
+    .config_rs_mii_speed_100_n_10 (config_rs_mii_speed_100_n_10),
 
-    .pkt_intf                 (tx_pkt_intf),
+    .pkt_valid                    (pkt_tx_valid),
+    .pkt_sop                      (pkt_tx_sop),
+    .pkt_eop                      (pkt_tx_eop),
+    .pkt_data                     (pkt_tx_data),
+    .pkt_ready                    (pkt_tx_ready),
+    .pkt_error                    (pkt_tx_error),
 
-    .mii_intf                 (rmii_intf.mac_tx)
+    .rmii_txd                     (rmii_txd),
+    .rmii_tx_en                   (rmii_tx_en),
+    .rmii_ref_clk                 (rmii_ref_clk)
 
   );
 
 
   /*  RX  */
-  peg_l2_rs_rmii_rs           u_rmii_rx
+  peg_l2_rs_rmii_rs#(.PKT_DATA_W(PKT_DATA_W))   u_rmii_rx
   (
 
-    .cr_intf                  (cr_intf),
+    .rst_n                        (rst_n),
 
-    .config_intf              (config_intf),
+    .config_rs_mii_speed_100_n_10 (config_rs_mii_speed_100_n_10),
 
-    .mii_intf                 (rmii_intf.mac_rx),
+    .rmii_rx_er                   (rmii_rx_er),
+    .rmii_crs_dv                  (rmii_crs_dv),
+    .rmii_rxd                     (rmii_rxd),
+    .rmii_ref_clk                 (rmii_ref_clk),
 
-    .pkt_intf                 (rx_pkt_intf)
+    .pkt_valid                    (pkt_rx_valid),
+    .pkt_sop                      (pkt_rx_sop),
+    .pkt_eop                      (pkt_rx_eop),
+    .pkt_data                     (pkt_rx_data),
+    .pkt_ready                    (pkt_rx_ready),
+    .pkt_error                    (pkt_rx_error)
 
   );
 
@@ -117,6 +157,8 @@ endmodule // peg_l2_rs_rmii
  
 
  -- <Log>
+
+[28-06-2014  04:42:07 PM][mammenx] Removed System Verilog stuff except fsm enum
 
 [18-06-2014  07:27:24 PM][mammenx] Initial Commit
 
