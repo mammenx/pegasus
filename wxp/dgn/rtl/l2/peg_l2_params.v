@@ -22,36 +22,17 @@
 /*
  --------------------------------------------------------------------------
  -- Project Code      : pegasus
- -- Package Name      : peg_l2_pkg
+ -- Package Name      : peg_l2_params
  -- Author            : mammenx
- -- Description       : This package contains the different parameters
+ -- Description       : This file contains the different parameters
                         and definitions used in L2 block.
  --------------------------------------------------------------------------
 */
-
-package peg_l2_pkg;
 
   parameter PREAMBLE_VALUE    = 56'b01010101_01010101_01010101_01010101_01010101_01010101_01010101;
   parameter SFD_VALUE         = 8'b11010101;
 
   parameter RS_TYPE           = "RMII";
-
-
-  //802.1 VLAN Tag Control information structure
-  typedef struct  packed  {
-    logic [2:0]   pcp;
-    logic         dei;
-    logic [11:0]  vid;
-  } vlan_tci_t;
-
-  //MAC Header structure
-  typedef struct  packed  {
-    logic [47:0]  da;
-    logic [47:0]  sa;
-    logic [15:0]  len;
-    logic [15:0]  ptype;
-    vlan_tci_t    vlan_tci;
-  } l2_mac_hdr_t;
 
   //Function to calculate CRC
   function [31:0] nextCRC32_D64;
@@ -101,7 +82,6 @@ package peg_l2_pkg;
   end
   endfunction
 
-endpackage  //  peg_l2_pkg
 
 /*
  --------------------------------------------------------------------------
@@ -110,6 +90,8 @@ endpackage  //  peg_l2_pkg
  
 
  -- <Log>
+
+[28-06-2014  04:43:57 PM][mammenx] Removed System Verilog
 
 [24-06-2014  08:01:48 PM][mammenx] Added CRC function
 
