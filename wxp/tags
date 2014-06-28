@@ -1,0 +1,13 @@
+credit_ff_async	.//dgn/rtl/common/pkt_ff_async/credit_ff_async.v	39
+dd_sync	.//dgn/rtl/common/dd_sync.v	36
+gry_cntr	.//dgn/rtl/common/gry_cntr.v	35
+nextCRC32_D64	.//dgn/rtl/l2/peg_l2_params.v	38
+peg_l2_params	.//dgn/rtl/l2/peg_l2_params.v	1
+peg_l2_rs_rmii	.//dgn/rtl/l2/rs/rmii/peg_l2_rs_rmii.sv	35
+peg_l2_rs_rmii_rs	.//dgn/rtl/l2/rs/rmii/peg_l2_rs_rmii_rx.sv	36
+peg_l2_rs_rmii_rx	.//dgn/rtl/l2/rs/rmii/peg_l2_rs_rmii_rx.sv	1
+peg_l2_rs_rmii_tx	.//dgn/rtl/l2/rs/rmii/peg_l2_rs_rmii_tx.sv	36
+pkt_ff_async	.//dgn/rtl/common/pkt_ff_async/pkt_ff_async.v	35
+pkt_ff_async_mem	.//dgn/rtl/common/pkt_ff_async/pkt_ff_async_mem.v	39
+pkt_ff_rptr	.//dgn/rtl/common/pkt_ff_async/pkt_ff_rptr.v	36
+pkt_ff_wptr	.//dgn/rtl/common/pkt_ff_async/pkt_ff_wptr.v	36
