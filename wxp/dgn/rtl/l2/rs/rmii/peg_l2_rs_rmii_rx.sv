@@ -35,7 +35,8 @@
 
 module peg_l2_rs_rmii_rs  #(
   
-  parameter PKT_DATA_W        = 64
+  parameter PKT_DATA_W        = 64,
+  parameter PKT_SIZE_W        = 16
 
 )
 
@@ -58,6 +59,7 @@ module peg_l2_rs_rmii_rs  #(
   output                      pkt_sop,
   output                      pkt_eop,
   output  [PKT_DATA_W-1:0]    pkt_data,
+  output  [PKT_SIZE_W-1:0]    pkt_size,
   input                       pkt_ready,
   output                      pkt_error
 
@@ -86,6 +88,7 @@ module peg_l2_rs_rmii_rs  #(
   reg                         pkt_sop;
   reg                         pkt_eop;
   reg   [PKT_DATA_W-1:0]      pkt_data;
+  reg   [PKT_SIZE_W-1:0]      pkt_size;
   reg                         pkt_error;
 
 //----------------------- Internal Register Declarations ------------------
@@ -210,6 +213,7 @@ enum  logic [1:0] { IDLE_S        = 2'd0,
       pkt_eop            <=  0;
       pkt_valid          <=  0;
       pkt_data           <=  0;
+      pkt_size           <=  0;
       pkt_error          <=  0;
     end
     else
@@ -222,6 +226,15 @@ enum  logic [1:0] { IDLE_S        = 2'd0,
       pkt_valid          <=  data_valid_nxt_c;
 
       pkt_eop            <=  eop_nxt_c;
+
+      if(fsm_pstate ==  VALID_S)
+      begin
+        pkt_size         <=  data_valid_nxt_c ? pkt_size + (PKT_DATA_W / 8) : pkt_size; //in bytes
+      end
+      else
+      begin
+        pkt_size         <=  0;
+      end
 
       //Latch onto error until eop
       if(pkt_error)
@@ -252,6 +265,8 @@ endmodule // peg_l2_rs_rmii_rs
  
 
  -- <Log>
+
+[29-06-2014  10:22:22 PM][mammenx] Added size field to packet interface
 
 [28-06-2014  04:42:07 PM][mammenx] Removed System Verilog stuff except fsm enum
 

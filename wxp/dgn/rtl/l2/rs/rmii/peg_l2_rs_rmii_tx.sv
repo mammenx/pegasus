@@ -36,6 +36,7 @@
 module peg_l2_rs_rmii_tx #(
 
   parameter   PKT_DATA_W        = 64,
+  parameter   PKT_SIZE_W        = 16,
   parameter   IFG               = 96
 
 )
@@ -53,6 +54,7 @@ module peg_l2_rs_rmii_tx #(
   input                       pkt_sop,
   input                       pkt_eop,
   input   [PKT_DATA_W-1:0]    pkt_data,
+  input   [PKT_SIZE_W-1:0]    pkt_size;
   output                      pkt_ready,
   input                       pkt_error,
 
@@ -95,6 +97,7 @@ module peg_l2_rs_rmii_tx #(
 //----------------------- Internal Wire Declarations ----------------------
   wire                        sample_rdy_c;
   wire                        wrap_data_cntr_c;
+  wire  [4:0]                 wrap_data_val_c;
   wire  [2:0]                 data_cntr_byte_w;
 
   wire  [IFG_CNTR_W-1:0]      ifg_val_c;
@@ -178,7 +181,8 @@ enum  logic [1:0] { IDLE_S    = 2'd0,
 
   assign  sample_cntr_en_c    =   (fsm_pstate == XMT_S) ? 1'b1  : 1'b0;
   assign  sample_rdy_c        =   (sample_cntr_f  ==  'd9)  ? 1'b1  : 1'b0;
-  assign  wrap_data_cntr_c    =   (data_cntr_f  ==  ((PKT_DATA_W >>  1) - 1)) ? sample_rdy_c  : 1'b0;
+  assign  wrap_data_val_c     =   (pkt_valid  & pkt_eop)  ? (pkt_size[PKT_SIZE_W-1:1]  - 1'b1)  : ((PKT_DATA_W >>  1) - 1);
+  assign  wrap_data_cntr_c    =   (data_cntr_f  ==  wrap_data_val_c) ? sample_rdy_c  : 1'b0;
   assign  data_cntr_byte_w    =   data_cntr_f[4:2]; //get num of bytes
 
   //Select the ifg value based on configuration
@@ -272,6 +276,8 @@ endmodule // peg_l2_rs_rmii_tx
  
 
  -- <Log>
+
+[29-06-2014  10:22:22 PM][mammenx] Added size field to packet interface
 
 [28-06-2014  04:42:07 PM][mammenx] Removed System Verilog stuff except fsm enum
 

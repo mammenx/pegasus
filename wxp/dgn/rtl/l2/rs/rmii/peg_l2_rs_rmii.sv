@@ -34,7 +34,8 @@
 
 module peg_l2_rs_rmii #(
 
-  parameter PKT_DATA_W  = 64
+  parameter PKT_DATA_W  = 64,
+  parameter PKT_SIZE_W  = 16
 
 )
 
@@ -50,6 +51,7 @@ module peg_l2_rs_rmii #(
   input                       pkt_tx_sop,
   input                       pkt_tx_eop,
   input   [PKT_DATA_W-1:0]    pkt_tx_data,
+  input   [PKT_SIZE_W-1:0]    pkt_tx_size,
   output                      pkt_tx_ready,
   input                       pkt_tx_error,
 
@@ -58,6 +60,7 @@ module peg_l2_rs_rmii #(
   output                      pkt_rx_sop,
   output                      pkt_rx_eop,
   output  [PKT_DATA_W-1:0]    pkt_rx_data,
+  output  [PKT_SIZE_W-1:0]    pkt_rx_size,
   input                       pkt_rx_ready,
   output                      pkt_rx_error,
 
@@ -104,7 +107,7 @@ module peg_l2_rs_rmii #(
 //----------------------- Start of Code -----------------------------------
 
   /*  TX  */
-  peg_l2_rs_rmii_tx#(.PKT_DATA_W(PKT_DATA_W))  u_rmii_tx
+  peg_l2_rs_rmii_tx#(.PKT_DATA_W(PKT_DATA_W), .PKT_SIZE_W(PKT_SIZE_W))  u_rmii_tx
   (
 
     .rst_n                        (rst_n),
@@ -126,7 +129,7 @@ module peg_l2_rs_rmii #(
 
 
   /*  RX  */
-  peg_l2_rs_rmii_rs#(.PKT_DATA_W(PKT_DATA_W))   u_rmii_rx
+  peg_l2_rs_rmii_rs#(.PKT_DATA_W(PKT_DATA_W), .PKT_SIZE_W(PKT_SIZE_W))   u_rmii_rx
   (
 
     .rst_n                        (rst_n),
@@ -157,6 +160,8 @@ endmodule // peg_l2_rs_rmii
  
 
  -- <Log>
+
+[29-06-2014  10:22:22 PM][mammenx] Added size field to packet interface
 
 [28-06-2014  04:42:07 PM][mammenx] Removed System Verilog stuff except fsm enum
 
