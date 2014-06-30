@@ -35,7 +35,7 @@
 
 module peg_l2_rs_rmii_rs  #(
   
-  parameter PKT_DATA_W        = 64,
+  parameter PKT_DATA_W        = 8,
   parameter PKT_SIZE_W        = 16
 
 )
@@ -265,6 +265,8 @@ endmodule // peg_l2_rs_rmii_rs
  
 
  -- <Log>
+
+[30-06-2014  03:37:45 PM][mammenx] Changed packet data width to 8
 
 [29-06-2014  10:22:22 PM][mammenx] Added size field to packet interface
 
