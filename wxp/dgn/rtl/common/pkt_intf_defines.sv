@@ -60,7 +60,7 @@
             wire               prefix``error``suffix
 
   //FOr connecting ports
-  `define pkt_intf_port_connect(port_prefix,port_suffix,wire_prefix,wire_suffix,WIDTH) \
+  `define pkt_intf_port_connect(port_prefix,port_suffix,wire_prefix,wire_suffix) \
             .port_prefix``valid``port_suffix  (wire_prefix``valid``wire_suffix),\
             .port_prefix``sop``port_suffix    (wire_prefix``sop``wire_suffix),\
             .port_prefix``eop``port_suffix    (wire_prefix``eop``wire_suffix),\
@@ -78,6 +78,8 @@
  
 
  -- <Log>
+
+[28-07-2014  01:52:09 PM][mammenx] Removed WIDTH from pkt_intf_port_connect macro
 
 [28-07-2014  01:50:55 PM][mammenx] Initial Commit
 
