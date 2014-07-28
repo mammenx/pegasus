@@ -102,6 +102,7 @@ module peg_l2_mac_tx_framer #(
   reg   [15:0]                final_pkt_size_f;
   reg                         crc_en_f;
   reg   [31:0]                crc_f;
+  reg                         pause_frm_f;
 
 //----------------------- Internal Wire Declarations ----------------------
   wire  [15:0]                data_bytes_w;
@@ -120,13 +121,15 @@ parameter     [3:0]                  // synopsys enum fsm_pstate
 IDLE_S              = 4'd0,
 PREAMBLE_S          = 4'd1,
 SFD_S               = 4'd2,
-SA_S                = 4'd3,
-DA_S                = 4'd4,
+DA_S                = 4'd3,
+SA_S                = 4'd4,
 LEN_TYPE_S          = 4'd5,
 VLAN_TAG_S          = 4'd6,
-DATA_S              = 4'd7,
-PADDING_S           = 4'd8,
-FCS_S               = 4'd9;
+PAUSE_OPCODE_S      = 4'd7,
+PAUSE_TIME_S        = 4'd8,
+DATA_S              = 4'd9,
+PADDING_S           = 4'd10,
+FCS_S               = 4'd11;
 
 //----------------------- FSM Register Declarations ------------------
 reg           [3:0]                            // synopsys enum fsm_pstate
@@ -149,11 +152,15 @@ PREAMBLE_S        : state_name = "PREAMBLE_S";
 
 SFD_S             : state_name = "SFD_S";
 
-SA_S              : state_name = "SA_S";
-
 DA_S              : state_name = "DA_S";
 
+SA_S              : state_name = "SA_S";
+
 LEN_TYPE_S        : state_name = "LEN_TYPE_S";
+
+PAUSE_OPCODE_S    : state_name = "PAUSE_OPCODE_S";
+
+PAUSE_TIME_S      : state_name = "PAUSE_TIME_S";
 
 VLAN_TAG_S        : state_name = "VLAN_TAG_S";
 
@@ -182,10 +189,20 @@ end
       data_cntr_f             <=  0;
       data_bffr_f             <=  0;
       final_pkt_size_f        <=  0;
+      pause_frm_f             <=  0;
     end
     else
     begin
       fsm_pstate              <=  next_state;
+
+      if(fsm_pstate ==  IDLE_S)
+      begin
+        pause_frm_f           <=  config_l2_mac_tx_en & config_l2_mac_tx_pause_gen; 
+      end
+      else if(fsm_pstate  ==  FCS_S)
+      begin
+        pause_frm_f           <=  1'b0;
+      end
 
       if(fsm_pstate ==  IDLE_S)
       begin
@@ -203,7 +220,7 @@ end
 
       if((fsm_pstate  !=  FCS_S)  & (next_state ==  FCS))
       begin
-        final_pkt_size_f      <=  data_bffr_f + 3'd4;
+        final_pkt_size_f      <=  data_cntr_f + 3'd4;
       end
     end
   end
@@ -213,7 +230,7 @@ end
   assign  data_bytes_w        =   data_cntr_f;
 
   //Check if pkt has minimum size
-  assign  padding_required_c  =   (data_bytes_w < MAC_MIN_FRM_LEN)  ? config_l2_mac_tx_padding_en : 1'b0;
+  assign  padding_required_c  =   (data_bytes_w < MAC_MIN_FRM_LEN)  ? (config_l2_mac_tx_padding_en  | pause_frm_f)  : 1'b0;
 
   assign  state_change_c      =   (next_state !=  fsm_pstate) ? 1'b1  : 1'b0;
 
@@ -226,7 +243,7 @@ end
 
       IDLE_S  :
       begin
-        if(llc_tx_valid & llc_tx_sop  & config_l2_mac_tx_en)
+        if(((llc_tx_valid & llc_tx_sop) | config_l2_mac_tx_pause_gen)   & config_l2_mac_tx_en)
         begin
           next_state          =   PREAMBLE_S;
         end
@@ -234,7 +251,7 @@ end
 
       PREAMBLE_S  :
       begin
-        if(llc_tx_valid & rs_tx_ready & (data_cntr_f  ==  (MAC_SFD_OFFSET-1)))
+        if((llc_tx_valid | pause_frm_f) & rs_tx_ready & (data_bytes_w  ==  (MAC_SFD_OFFSET-1)))
         begin
           next_state          =   SFD_S;
         end
@@ -242,47 +259,75 @@ end
 
       SFD_S :
       begin
-        if(llc_tx_valid & rs_tx_ready & (data_cntr_f  ==  (MAC_SA_OFFSET-1)))
-        begin
-          next_state          =   SA_S;
-        end
-      end
-
-      SA_S  :
-      begin
-        if(llc_tx_valid & rs_tx_ready & (data_cntr_f  ==  (MAC_DA_OFFSET-1)))
-        begin
+        if((llc_tx_valid | pause_frm_f) & rs_tx_ready & (data_bytes_w  ==  (MAC_DA_OFFSET-1)))
+          llc_tx_ready        =   ~pause_frm_f;
           next_state          =   DA_S;
         end
       end
 
       DA_S  :
       begin
-        if(llc_tx_valid & rs_tx_ready & (data_cntr_f  ==  (MAC_LEN_TYPE_OFFSET-1)))
+        if((llc_tx_valid | pause_frm_f) & rs_tx_ready & (data_bytes_w  ==  (MAC_SA_OFFSET-1)))
         begin
+          llc_tx_ready        =   ~pause_frm_f;
+          next_state          =   SA_S;
+        end
+      end
+
+      SA_S  :
+      begin
+        if((llc_tx_valid | pause_frm_f) & rs_tx_ready & (data_bytes_w  ==  (MAC_LEN_TYPE_OFFSET-1)))
+        begin
+          llc_tx_ready        =   ~pause_frm_f;
           next_state          =   LEN_TYPE_S;
         end
       end
 
       LEN_TYPE_S  :
       begin
-        if(llc_tx_valid & rs_tx_ready & (data_cntr_f  ==  (MAC_DATA_OFFSET-1)))
+        if(rs_tx_ready & (data_bytes_w  ==  (MAC_DATA_OFFSET-1)))
         begin
-          if(data_bffr_w[15:0]  ==  VLAN_TYPE_VALUE)
+          llc_tx_ready        =   llc_tx_valid  & ~pause_frm_f;
+
+          if(pause_frm_f)
           begin
-            next_state        =   VLAN_TAG_S;
+            next_state        =   PAUSE_OPCODE_S;
           end
-          else
+          else if(llc_tx_valid)
           begin
-            next_state        =   DATA_S;
+            if(data_bffr_w[15:0]  ==  VLAN_TYPE_VALUE)
+            begin
+              next_state      =   VLAN_TAG_S;
+            end
+            else
+            begin
+              next_state      =   DATA_S;
+            end
           end
+        end
+      end
+
+      PAUSE_OPCODE_S  :
+      begin
+        if(rs_tx_ready  & (data_bytes_w  ==  MAC_PAUSE_TIME_OFFSET-1))
+        begin
+          next_state          =   PAUSE_TIME_S;
+        end
+      end
+
+      PAUSE_TIME_S  :
+      begin
+        if(rs_tx_ready  & (data_bytes_w  ==  MAC_PAUSE_TIME_OFFSET+1))
+        begin
+          next_state          =   PADDING_S;
         end
       end
 
       VLAN_TAG_S  :
       begin
-        if(llc_tx_valid & rs_tx_ready & (data_cntr_f  ==  (MAC_VLAN_DATA_OFFSET-1)))
+        if(llc_tx_valid & rs_tx_ready & (data_bytes_w  ==  (MAC_VLAN_DATA_OFFSET-1)))
         begin
+          llc_tx_ready        =   1'b1;
           next_state          =   DATA_S;
         end
       end
@@ -291,6 +336,8 @@ end
       begin
         if(llc_tx_valid & llc_tx_eop  & rs_tx_ready)
         begin
+          llc_tx_ready        =   1'b1;
+
           if(padding_required_c)
           begin
             next_state        =   PADDING_S;
@@ -316,7 +363,7 @@ end
 
       FCS :
       begin
-        if((data_cntr_f ==  final_pkt_size_f) & rs_tx_ready))
+        if((data_bytes_w ==  final_pkt_size_f) & rs_tx_ready))
         begin
           next_state          =   IDLE_S;
         end
@@ -411,7 +458,40 @@ end
           rs_tx_valid         <=  1'b1;
           rs_tx_sop           <=  0;
           rs_tx_eop           <=  0;
-          rs_tx_data          <=  state_change_c  ? llc_tx_data : rs_tx_data;
+
+          if(pause_frm_f)
+          begin
+            rs_tx_data        <=  (data_bytes_w ==  MAC_LEN_TYPE_OFFSET)  ? CTRL_TYPE_VALUE[7:0]  : CTRL_TYPE_VALUE[15:8];
+          end
+          else if(state_change_c)
+          begin
+            rs_tx_data        <=  llc_tx_data;
+          end
+          else
+          begin
+            rs_tx_data        <=  rs_tx_data;
+          end
+
+          rs_tx_error         <=  0;
+        end
+
+        PAUSE_OPCODE_S  :
+        begin
+          rs_tx_valid         <=  1'b1;
+          rs_tx_sop           <=  0;
+          rs_tx_eop           <=  1'b0;
+          rs_tx_data          <=  (data_cntr_f  ==  MAC_CTRL_OPCODE_OFFSET) ? PAUSE_CTRL_OPCODE[7:0]  : PAUSE_CTRL_OPCODE[15:8];
+          rs_tx_error         <=  0;
+        end
+
+        PAUSE_TIME_S  :
+        begin
+          rs_tx_valid         <=  1'b1;
+          rs_tx_sop           <=  0;
+          rs_tx_eop           <=  1'b0;
+          rs_tx_data          <=  (data_cntr_f  ==  MAC_PAUSE_TIME_OFFSET) ?
+                                      config_l2_mac_tx_pause_time[7:0] :
+                                      config_l2_mac_tx_pause_time[15:8];
           rs_tx_error         <=  0;
         end
 
@@ -456,6 +536,8 @@ endmodule // peg_l2_mac_tx_framer
  
 
  -- <Log>
+
+[28-07-2014  12:12:47 PM][mammenx] Added Pause Frame support
 
 [02-07-2014  12:52:58 AM][mammenx] Initial version
 

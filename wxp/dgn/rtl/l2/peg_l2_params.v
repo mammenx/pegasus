@@ -29,20 +29,34 @@
  --------------------------------------------------------------------------
 */
 
-  parameter PREAMBLE_VALUE    = 8'b01010101;
-  parameter SFD_VALUE         = 8'b11010101;
-  parameter VLAN_TYPE_VALUE   = 16'h8100;
+  parameter PREAMBLE_VALUE      = 8'b01010101;
+  parameter SFD_VALUE           = 8'b11010101;
+  parameter VLAN_TYPE_VALUE     = 16'h8100;
+  parameter CTRL_TYPE_VALUE     = 16'h8808;
+  parameter PAUSE_CTRL_OPCODE   = 16'h0001;
+  parameter GLBL_MULTICAST_ADDR = 48'h01_80_C2_00_00_01;
 
   parameter RS_TYPE           = "RMII";
 
   //Byte offsets for different MAC fields
   parameter MAC_PREAMBLE_OFFSET   = 0;
   parameter MAC_SFD_OFFSET        = 7;
-  parameter MAC_SA_OFFSET         = 8;
-  parameter MAC_DA_OFFSET         = 14;
+  parameter MAC_DA_OFFSET         = 8;
+  parameter MAC_SA_OFFSET         = 14;
   parameter MAC_LEN_TYPE_OFFSET   = 20;
+  parameter MAC_CTRL_OPCODE_OFFSET= 22;
   parameter MAC_DATA_OFFSET       = 22;
+  parameter MAC_PAUSE_TIME_OFFSET = 24;
   parameter MAC_VLAN_DATA_OFFSET  = 26;
+
+  //Parameters for indexing the field buffer
+  parameter MAC_FIDX_DADDR        = 0;
+  parameter MAC_FIDX_SADDR        = 1;
+  parameter MAC_FIDX_LEN_TYPE     = 2;
+  parameter MAC_FIDX_VLAN_TAG     = 3;
+  parameter MAC_FIDX_CTRL_OPCODE  = 4;
+  parameter MAC_FIDX_PAUSE_TIME   = 5;
+  parameter MAC_FIDX_FCS          = 6;
 
   //Function to calculate CRC
   function [31:0] nextCRC32_D8;
@@ -99,6 +113,8 @@
  
 
  -- <Log>
+
+[28-07-2014  12:12:47 PM][mammenx] Added Pause Frame support
 
 [02-07-2014  12:53:29 AM][mammenx] Added misc MAC parameters & CRC function
 
