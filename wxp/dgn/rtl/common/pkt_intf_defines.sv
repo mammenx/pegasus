@@ -79,10 +79,7 @@
 
  -- <Log>
 
-[28-07-2014  01:52:09 PM][mammenx] Removed WIDTH from pkt_intf_port_connect macro
-
-[28-07-2014  01:50:55 PM][mammenx] Initial Commit
-
+[28-07-2014  04:19:58 PM][mammenx] Initial commit
 
  --------------------------------------------------------------------------
 */
