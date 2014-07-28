@@ -52,12 +52,12 @@
 
   //For creating wires
   `define pkt_intf_wires(prefix,suffix,WIDTH) \
-            wire               prefix``valid``suffix,\
-            wire               prefix``sop``suffix,\
-            wire               prefix``eop``suffix,\
-            wire  [WIDTH-1:0]  prefix``data``suffix,\
-            wire               prefix``ready``suffix,\
-            wire               prefix``error``suffix
+            wire               prefix``valid``suffix;\
+            wire               prefix``sop``suffix;\
+            wire               prefix``eop``suffix;\
+            wire  [WIDTH-1:0]  prefix``data``suffix;\
+            wire               prefix``ready``suffix;\
+            wire               prefix``error``suffix;
 
   //FOr connecting ports
   `define pkt_intf_port_connect(port_prefix,port_suffix,wire_prefix,wire_suffix) \
