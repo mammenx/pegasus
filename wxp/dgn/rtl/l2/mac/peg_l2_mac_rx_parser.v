@@ -60,6 +60,7 @@ module peg_l2_mac_rx_parser #(
   output  [BFFR_SIZE-1:0]     rx_bffr,
 
   //Interface to FCS Calculator
+  output                      rx_fcs_rst,
   output                      rx_fcs_calc_en,
   output  [PKT_DATA_W-1:0]    rx_fcs_calc_data,
 
@@ -99,6 +100,7 @@ module peg_l2_mac_rx_parser #(
   reg   [NUM_FIELDS-1:0]      rx_field_valid_vec;
   reg   [BFFR_SIZE-1:0]       rx_bffr;
 
+  reg                         rx_fcs_rst;
   reg                         rx_fcs_calc_en;
 
   reg                         llc_rx_valid;
@@ -194,6 +196,7 @@ end
       llc_rx_valid_del_vec_f  <=  0;
       llc_rx_sop_del_vec_f    <=  0;
 
+      rx_fcs_rst              <=  0;
       rx_fcs_calc_en          <=  0;
 
       llc_rx_valid            <=  0;
@@ -224,6 +227,8 @@ end
       end
 
       rx_fcs_calc_en          <=  rx_data_valid_c & fcs_en_delay_vec_f[2] & (fsm_pstate !=  IDLE_S);
+
+      rx_fcs_rst              <=  (fsm_pstate ==  SFD_S)  ? 1'b1  : 1'b0;
 
       llc_rx_valid            <=  (fsm_pstate ==  FCS_S)  ? llc_rx_valid_del_vec_f[2] : rx_data_valid_c & llc_rx_valid_del_vec_f[2];
 
@@ -280,7 +285,8 @@ end
     end
   end
 
-  assign  rx_fcs_calc_data    =   rx_bffr[(2*PKT_DATA_W)  +:  PKT_DATA_W];
+  assign  rx_fcs_calc_data    =   (data_bytes_w <=  4)  ? ~rx_bffr[(2*PKT_DATA_W)  +:  PKT_DATA_W]
+                                                        :  rx_bffr[(2*PKT_DATA_W)  +:  PKT_DATA_W];
 
   assign  rx_data_valid_c     =   rs_rx_valid & rs_rx_ready;
   assign  rs_rx_ready         =   1'b1;
@@ -430,6 +436,8 @@ endmodule // peg_l2_mac_rx_parser
  
 
  -- <Log>
+
+[28-07-2014  04:18:29 PM][mammenx] Created basic wrapper
 
 [28-07-2014  12:13:48 PM][mammenx] Initial Commit
 

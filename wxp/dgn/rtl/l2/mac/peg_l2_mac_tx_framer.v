@@ -518,7 +518,7 @@ end
           rs_tx_valid         <=  state_change_c  ? 1'b0  : 1'b1;
           rs_tx_sop           <=  0;
           rs_tx_eop           <=  state_change_c  ? 1'b1  : 1'b0;
-          rs_tx_data          <=  crc_f[fcs_index_c +:  PKT_DATA_W];
+          rs_tx_data          <=  fcs_c[fcs_index_c +:  PKT_DATA_W];
           rs_tx_error         <=  0;
         end
 
@@ -536,6 +536,8 @@ endmodule // peg_l2_mac_tx_framer
  
 
  -- <Log>
+
+[28-07-2014  04:18:29 PM][mammenx] Created basic wrapper
 
 [28-07-2014  12:12:47 PM][mammenx] Added Pause Frame support
 
