@@ -1,0 +1,3 @@
+[submodule "wxp/regmap"]
+	path = wxp/regmap
+	url = https://github.com/mammenx/regmap.git
