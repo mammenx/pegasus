@@ -1,0 +1,5 @@
+Partlist exported from G:/WorK/github/pegasus/wxp/dgn/pcb/netconx1/v01/netconx1_v01.sch at 28-01-2016 17:33:36
+
+Part   Value Device               Package Description                       
+DE1_J1       DE1_GPIO_CON40"      2X20    DE1 GPIO Connector                
+ETH_J1       DP83848C_ETH_BRD_CON 2X10    DP83848C Ethernet Board Connector 

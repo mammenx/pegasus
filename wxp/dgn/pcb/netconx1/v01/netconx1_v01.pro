@@ -2,8 +2,8 @@ EAGLE AutoRouter Statistics:
 
 Job           : G:/WorK/github/pegasus/wxp/dgn/pcb/netconx1/netconx1_v01.brd
 
-Start at      : 00:59:35 (19-06-2014)
-End at        : 00:59:35 (19-06-2014)
+Start at      : 00:23:45 (28-06-2014)
+End at        : 00:23:45 (28-06-2014)
 Elapsed time  : 00:00:00
 
 Signals       :    12   RoutingGrid: 20 mil  Layers: 1
