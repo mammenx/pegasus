@@ -37,7 +37,7 @@
     //fields
 
     //registering with factory
-    `ovm_object_param_utils_begin(seq_item_name)
+    `ovm_object_param_utils_begin(<seq_item_name>)
     `ovm_object_utils_end
 
     /*  Constructor */
@@ -49,7 +49,7 @@
     /*  Constraint  Block */
 
 
-  endclass  : syn_lb_seq_item
+  endclass  : <seq_item_name>
 
 `endif
 
@@ -61,6 +61,8 @@
  
 
  -- <Log>
+
+[29-01-2016  06:44:45 PM][mammenx] Fixed seq_item_tag
 
 [29-01-2016  06:42:38 PM][mammenx] Initial Commit
 
