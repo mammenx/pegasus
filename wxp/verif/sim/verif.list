@@ -1,0 +1,26 @@
++incdir+../tb/agents
++incdir+../tb/agents/rmii
++incdir+../tb/agents/rmii/rx
++incdir+../tb/agents/rmii/tx
++incdir+../tb/env
++incdir+../tb/seq
++incdir+../tb/seq_item
++incdir+../tb/tests
++incdir+../tb/tests/rmii
+
+//System Verilog DPI
+
+//OVM
++incdir+../ovm-2.1.2/src/
+../ovm-2.1.2/src/ovm_pkg.sv
+
+//Packages
+
+
+//Interfaces
+../../verif/tb/intf/peg_rmii_intf.sv
+
+
+//TB TOP
+../../verif/tb/top/peg_rmii_tb_top.sv
+

@@ -1,0 +1,4 @@
++incdir+../../dgn/rtl/l2/
+../../dgn/rtl/l2/rs/rmii/peg_l2_rs_rmii_rx.sv
+../../dgn/rtl/l2/rs/rmii/peg_l2_rs_rmii_tx.sv
+../../dgn/rtl/l2/rs/rmii/peg_l2_rs_rmii.sv

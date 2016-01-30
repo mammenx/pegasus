@@ -1,0 +1,16 @@
+# Current time Sat Jan 30 18:19:00 2016
+# ModelSim Stack Trace
+# Program = vish
+# Id = "6.5e"
+# Version = "2010.02"
+# Date = "Feb 27 2010"
+# Platform = linuxpe
+# 0    0xf773a440: '<unknown (@0xf773a440)>'
+# 1    0x083596d6: 'Tcl_DoOneEvent + 0x10a' in '/altera/modelsim/6.5e/modelsim_ase/bin/../linux/vish'
+# 2    0x0828355d: 'Tk_MainLoop + 0x19' in '/altera/modelsim/6.5e/modelsim_ase/bin/../linux/vish'
+# 3    0x0828a730: 'Tk_MainEx + 0x298' in '/altera/modelsim/6.5e/modelsim_ase/bin/../linux/vish'
+# 4    0x08149368: 'vish_inner_loop + 0x238' in '/altera/modelsim/6.5e/modelsim_ase/bin/../linux/vish'
+# 5    0x08149de5: 'main + 0x5e5' in '/altera/modelsim/6.5e/modelsim_ase/bin/../linux/vish'
+# 6    0xf73c4a7e: '_libc_start_main + 0xee' in '/lib/i386-linux-gnu/libc.so.6'
+# End of Stack Trace
+
