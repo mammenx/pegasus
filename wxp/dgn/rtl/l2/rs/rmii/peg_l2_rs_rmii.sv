@@ -31,11 +31,10 @@
 
 `timescale 1ns / 10ps
 
+`include  "pkt_intf_defines.sv"
 
 module peg_l2_rs_rmii #(
-
-  parameter PKT_DATA_W  = 8,
-  parameter PKT_SIZE_W  = 16
+  parameter PKT_DATA_W  = 8
 
 )
 
@@ -47,22 +46,12 @@ module peg_l2_rs_rmii #(
   input                       config_rs_mii_speed_100_n_10,
 
   //Packet interface from MAC TX
-  input                       pkt_tx_valid,
-  input                       pkt_tx_sop,
-  input                       pkt_tx_eop,
-  input   [PKT_DATA_W-1:0]    pkt_tx_data,
-  input   [PKT_SIZE_W-1:0]    pkt_tx_size,
-  output                      pkt_tx_ready,
-  input                       pkt_tx_error,
+  `pkt_intf_ports_s(pkt_tx_,,PKT_DATA_W)
+  ,
 
   //Packet interface to MAC RX
-  output                      pkt_rx_valid,
-  output                      pkt_rx_sop,
-  output                      pkt_rx_eop,
-  output  [PKT_DATA_W-1:0]    pkt_rx_data,
-  output  [PKT_SIZE_W-1:0]    pkt_rx_size,
-  input                       pkt_rx_ready,
-  output                      pkt_rx_error,
+  `pkt_intf_ports_m(pkt_rx_,,PKT_DATA_W)
+  ,
 
   //RMII Interface to PHY
   input                       rmii_rx_er,
@@ -107,19 +96,17 @@ module peg_l2_rs_rmii #(
 //----------------------- Start of Code -----------------------------------
 
   /*  TX  */
-  peg_l2_rs_rmii_tx#(.PKT_DATA_W(PKT_DATA_W), .PKT_SIZE_W(PKT_SIZE_W))  u_rmii_tx
-  (
+  peg_l2_rs_rmii_tx#(
+    .PKT_DATA_W(PKT_DATA_W)
+
+  ) u_rmii_tx (
 
     .rst_n                        (rst_n),
 
     .config_rs_mii_speed_100_n_10 (config_rs_mii_speed_100_n_10),
 
-    .pkt_valid                    (pkt_tx_valid),
-    .pkt_sop                      (pkt_tx_sop),
-    .pkt_eop                      (pkt_tx_eop),
-    .pkt_data                     (pkt_tx_data),
-    .pkt_ready                    (pkt_tx_ready),
-    .pkt_error                    (pkt_tx_error),
+    `pkt_intf_port_connect(pkt_,,pkt_tx_,)
+    ,
 
     .rmii_txd                     (rmii_txd),
     .rmii_tx_en                   (rmii_tx_en),
@@ -129,8 +116,10 @@ module peg_l2_rs_rmii #(
 
 
   /*  RX  */
-  peg_l2_rs_rmii_rs#(.PKT_DATA_W(PKT_DATA_W), .PKT_SIZE_W(PKT_SIZE_W))   u_rmii_rx
-  (
+  peg_l2_rs_rmii_rx#(
+    .PKT_DATA_W(PKT_DATA_W)
+
+  ) u_rmii_rx (
 
     .rst_n                        (rst_n),
 
@@ -141,12 +130,7 @@ module peg_l2_rs_rmii #(
     .rmii_rxd                     (rmii_rxd),
     .rmii_ref_clk                 (rmii_ref_clk),
 
-    .pkt_valid                    (pkt_rx_valid),
-    .pkt_sop                      (pkt_rx_sop),
-    .pkt_eop                      (pkt_rx_eop),
-    .pkt_data                     (pkt_rx_data),
-    .pkt_ready                    (pkt_rx_ready),
-    .pkt_error                    (pkt_rx_error)
+    `pkt_intf_port_connect(pkt_,,pkt_rx_,)
 
   );
 
@@ -160,6 +144,8 @@ endmodule // peg_l2_rs_rmii
  
 
  -- <Log>
+
+[31-01-2016  06:13:35 PM][mammenx] Simplified design to handle only byte-streams
 
 [30-06-2014  03:37:45 PM][mammenx] Changed packet data width to 8
 

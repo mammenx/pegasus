@@ -22,21 +22,22 @@
 /*
  --------------------------------------------------------------------------
  -- Project Code      : pegasus
- -- Module Name       : peg_l2_rs_rmii_rs
+ -- Module Name       : peg_l2_rs_rmii_rx
  -- Author            : mammenx
  -- Associated modules: 
  -- Function          : This module implements the receive side of L2
-                        reconcilliation sub-layer based on RMII.
+                        reconcilliation sub-layer based on RMII. It converts
+                        incoming data to byte stream.
  --------------------------------------------------------------------------
 */
 
 `timescale 1ns / 10ps
 
+`include  "pkt_intf_defines.sv"
 
-module peg_l2_rs_rmii_rs  #(
+module peg_l2_rs_rmii_rx  #(
   
-  parameter PKT_DATA_W        = 8,
-  parameter PKT_SIZE_W        = 16
+  parameter PKT_DATA_W        = 8
 
 )
 
@@ -55,13 +56,12 @@ module peg_l2_rs_rmii_rs  #(
   input                       rmii_ref_clk,
 
   //Packet interface to MAC RX
-  output  reg                   pkt_valid,
-  output  reg                   pkt_sop,
-  output  reg                   pkt_eop,
-  output  reg [PKT_DATA_W-1:0]  pkt_data,
-  output  reg [PKT_SIZE_W-1:0]  pkt_size,
-  input   reg                   pkt_ready,
-  output  reg                   pkt_error
+  output  reg                     pkt_valid,
+  output                          pkt_sop,
+  output                          pkt_eop,
+  output  reg   [PKT_DATA_W-1:0]  pkt_data,
+  input                           pkt_ready,
+  output  reg                     pkt_error
 
 
   //--------------------- Interfaces --------------------
@@ -69,7 +69,6 @@ module peg_l2_rs_rmii_rs  #(
   );
 
 //----------------------- Global parameters Declarations ------------------
-  `include  "peg_l2_params.sv"
 
 
 //----------------------- Input Declarations ------------------------------
@@ -84,173 +83,71 @@ module peg_l2_rs_rmii_rs  #(
 //----------------------- Output Register Declaration ---------------------
 
 
-
 //----------------------- Internal Register Declarations ------------------
   reg   [3:0]                 sample_cntr_f;
-  reg   [4:0]                 data_cntr_f;
+  reg   [1:0]                 byte_cntr_f;
 
 //----------------------- Internal Wire Declarations ----------------------
   wire                        sample_rdy_c;
-  wire  [2:0]                 data_cntr_byte_w;
-  wire                        wrap_data_cntr_c;
-
-  wire  [PKT_DATA_W-1:0]      pkt_data_nxt_c;
-  wire                        valid_preamble_sfd_pattern_c;
-  reg                         data_valid_nxt_c;
-  reg                         eop_nxt_c;
 
 //----------------------- Internal Interface Declarations -----------------
 
 
 //----------------------- FSM Declarations --------------------------------
-enum  logic [1:0] { IDLE_S        = 2'd0, 
-                    VALID_S       = 2'd1,
-                    WAIT_IFG_S    = 2'd2
-                  }  fsm_pstate, next_state;
 
 
 
 //----------------------- Start of Code -----------------------------------
 
-  /*  Main FSM Logic  */
-  always@(posedge  rmii_ref_clk, negedge rst_n)
+  always@(posedge rmii_ref_clk, negedge rst_n)
   begin
     if(~rst_n)
     begin
-      fsm_pstate              <=  IDLE_S;
       sample_cntr_f           <=  0;
-      data_cntr_f             <=  0;
+      byte_cntr_f             <=  0;
     end
     else
     begin
-      fsm_pstate              <=  next_state;
-
-      if(config_rs_mii_speed_100_n_10) //100Mbps mode
+      if(config_rs_mii_speed_100_n_10)
       begin
         sample_cntr_f         <=  4'd9;
       end
-      else  //10Mbps mode
-      begin
-        if(rmii_crs_dv)
-        begin
-          sample_cntr_f       <=  sample_rdy_c  ? 0 : sample_cntr_f + 1'b1;
-        end
-        else
-        begin
-          sample_cntr_f       <=  0;
-        end
-      end
-
-      if(wrap_data_cntr_c)
-      begin
-        data_cntr_f           <=  0;
-      end
-      else if(fsm_pstate ==  VALID_S)
-      begin
-        data_cntr_f           <=  sample_rdy_c  ? data_cntr_f + 1'b1  : data_cntr_f;
-      end
       else
       begin
-        data_cntr_f           <=  0;
+        sample_cntr_f         <=  sample_rdy_c  ? 0 : sample_cntr_f + rmii_crs_dv;
       end
+
+      byte_cntr_f             <=  byte_cntr_f + sample_rdy_c;
     end
   end
 
-  assign  sample_rdy_c        =   (sample_cntr_f  ==  'd9)  ? rmii_crs_dv : 1'b0;
-  assign  data_cntr_byte_w    =   data_cntr_f[4:2]; //get num of bytes
-  assign  wrap_data_cntr_c    =   (data_cntr_f  ==  ((PKT_DATA_W >>  1) - 1)) ? sample_rdy_c  : 1'b0;
+  //Generate signal to indicate that sampe is ready
+  assign  sample_rdy_c  = (sample_cntr_f  ==  4'd9) ? rmii_crs_dv : 1'b0;
 
-  always@(*)
-  begin
-    next_state        = fsm_pstate;
-    data_valid_nxt_c  = pkt_valid;
-    eop_nxt_c         = 1'b0;
-
-    case(fsm_pstate)
-
-      IDLE_S  :
-      begin
-        data_valid_nxt_c      =   valid_preamble_sfd_pattern_c;
-
-        if(valid_preamble_sfd_pattern_c)
-        begin
-          next_state          =   VALID_S;
-        end
-      end
-
-      VALID_S :
-      begin
-        data_valid_nxt_c      =   wrap_data_cntr_c  | (~rmii_crs_dv);
-
-        if(~rmii_crs_dv)
-        begin
-          eop_nxt_c           =   1'b1;
-          next_state          =   WAIT_IFG_S;
-        end
-      end
-
-      WAIT_IFG_S  :
-      begin
-        next_state            =   IDLE_S;
-      end
-
-    endcase
-  end
-
-
-  /*  Prep data into packet format  */
-  always@(posedge  rmii_ref_clk, rst_n)
+  /*
+    * Form byte-stream
+  */
+  always@(posedge rmii_ref_clk, negedge rst_n)
   begin
     if(~rst_n)
     begin
-      pkt_sop            <=  0;
-      pkt_eop            <=  0;
-      pkt_valid          <=  0;
-      pkt_data           <=  0;
-      pkt_size           <=  0;
-      pkt_error          <=  0;
+      pkt_valid               <=  0;
+      pkt_data                <=  0;
+      pkt_error               <=  0;
     end
     else
     begin
-      //Shift in valid data
-      pkt_data           <=  pkt_data_nxt_c;
-
-      pkt_sop            <=  valid_preamble_sfd_pattern_c;
-
-      pkt_valid          <=  data_valid_nxt_c;
-
-      pkt_eop            <=  eop_nxt_c;
-
-      if(fsm_pstate ==  VALID_S)
-      begin
-        pkt_size         <=  data_valid_nxt_c ? pkt_size + (PKT_DATA_W / 8) : pkt_size; //in bytes
-      end
-      else
-      begin
-        pkt_size         <=  0;
-      end
-
-      //Latch onto error until eop
-      if(pkt_error)
-      begin
-        pkt_error        <=  ~pkt_eop;
-      end
-      else
-      begin
-        pkt_error        <=  rmii_rx_er;
-      end
-    end    
+      pkt_valid               <=  (byte_cntr_f  ==  2'd3) ? sample_rdy_c  : 1'b0;
+      pkt_data                <=  sample_rdy_c  ? {rmii_rxd,pkt_data[PKT_DATA_W-1:2]} : pkt_data;
+      pkt_error               <=  rmii_rx_er;
+    end
   end
 
-  //Shift in valid data
-  assign  pkt_data_nxt_c  = sample_rdy_c  ? {rmii_rxd,  pkt_data[PKT_DATA_W-1:2]}
-                                          : pkt_data;
-
-  //Check for valid preamble SFD pattern
-  assign  valid_preamble_sfd_pattern_c  = (pkt_data_nxt_c ==  {SFD_VALUE,PREAMBLE_VALUE}) ? sample_rdy_c  : 1'b0;
+  assign  pkt_sop       =   1'b0;
+  assign  pkt_eop       =   1'b0;
 
 
-endmodule // peg_l2_rs_rmii_rs
+endmodule // peg_l2_rs_rmii_rx
 
 /*
  --------------------------------------------------------------------------
@@ -259,6 +156,8 @@ endmodule // peg_l2_rs_rmii_rs
  
 
  -- <Log>
+
+[31-01-2016  06:13:35 PM][mammenx] Simplified design to handle only byte-streams
 
 [31-01-2016  04:30:07 PM][mammenx] Fixed compilation errors
 

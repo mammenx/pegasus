@@ -26,7 +26,8 @@
  -- Author            : mammenx
  -- Associated modules: 
  -- Function          : This module contains logic for driving an ethernet
-                        packet on RMII interface.
+                        packet on RMII interface. It converts an incoming
+                        byte-stream to RMII.
  --------------------------------------------------------------------------
 */
 
@@ -34,10 +35,7 @@
 
 
 module peg_l2_rs_rmii_tx #(
-
-  parameter   PKT_DATA_W        = 8,
-  parameter   PKT_SIZE_W        = 16,
-  parameter   IFG               = 96
+  parameter   PKT_DATA_W        = 8
 
 )
 
@@ -54,14 +52,13 @@ module peg_l2_rs_rmii_tx #(
   input                           pkt_sop,
   input                           pkt_eop,
   input       [PKT_DATA_W-1:0]    pkt_data,
-  input       [PKT_SIZE_W-1:0]    pkt_size,
-  output reg                      pkt_ready,
+  output                          pkt_ready,
   input                           pkt_error,
 
   //RMII interface to PHY
   output  reg [1:0]               rmii_txd,
   output  reg                     rmii_tx_en,
-  input                       rmii_ref_clk
+  input                           rmii_ref_clk
 
 
   //--------------------- Interfaces --------------------
@@ -69,11 +66,7 @@ module peg_l2_rs_rmii_tx #(
 );
 
 //----------------------- Global parameters Declarations ------------------
-  `include  "peg_l2_params.sv"
 
-  localparam  IFG_100MBPS       = (96 / 2)  - 1;
-  localparam  IFG_10MBPS        = (IFG_100MBPS * 10)  - 1;
-  localparam  IFG_CNTR_W        = $clog2(IFG_10MBPS); //worst case
 
 //----------------------- Input Declarations ------------------------------
 
@@ -89,183 +82,64 @@ module peg_l2_rs_rmii_tx #(
 
 //----------------------- Internal Register Declarations ------------------
   reg   [3:0]                 sample_cntr_f;
-  reg                         sample_cntr_en_c;
-  reg   [4:0]                 data_cntr_f;
-
-  reg   [IFG_CNTR_W-1:0]      ifg_cntr_f;
+  reg   [1:0]                 byte_cntr_f;
 
 //----------------------- Internal Wire Declarations ----------------------
-  wire                        sample_rdy_c;
-  wire                        wrap_data_cntr_c;
-  wire  [4:0]                 wrap_data_val_c;
-  wire  [2:0]                 data_cntr_byte_w;
+  wire                        sample_done_c;
 
-  wire  [IFG_CNTR_W-1:0]      ifg_val_c;
-  wire                        ifg_rdy_c;
 
 //----------------------- Internal Interface Declarations -----------------
 
 
 //----------------------- FSM Declarations --------------------------------
-enum  logic [1:0] { IDLE_S    = 2'd0,
-                    XMT_S     = 2'd1,
-                    IFG_S     = 2'd2
-                  }  fsm_pstate, next_state;
-
 
 
 //----------------------- Start of Code -----------------------------------
 
-  /*
-    * Main FSM
-  */
-  always@(posedge  rmii_ref_clk, negedge rst_n)
+  always@(posedge rmii_ref_clk, negedge rst_n)
   begin
     if(~rst_n)
     begin
-      fsm_pstate              <=  IDLE_S;
       sample_cntr_f           <=  0;
-      data_cntr_f             <=  0;
-      ifg_cntr_f              <=  0;
+      byte_cntr_f             <=  0;
     end
     else
     begin
-      fsm_pstate              <=  next_state;
-
-      if(config_rs_mii_speed_100_n_10) //100Mbps mode
+      if(config_rs_mii_speed_100_n_10)
       begin
         sample_cntr_f         <=  4'd9;
       end
-      else  //10Mbps mode
-      begin
-        if(sample_cntr_en_c)
-        begin
-          sample_cntr_f       <=  sample_rdy_c  ? 0 : sample_cntr_f + 1'b1;
-        end
-        else
-        begin
-          sample_cntr_f       <=  0;
-        end
-      end
-
-      if(fsm_pstate ==  XMT_S)
-      begin
-        if(wrap_data_cntr_c)
-        begin
-          data_cntr_f         <=  0;
-        end
-        else
-        begin
-          data_cntr_f         <=  sample_rdy_c  ? data_cntr_f + 1'b1  : data_cntr_f;
-        end
-      end
       else
       begin
-        data_cntr_f           <=  0;
+        sample_cntr_f         <=  sample_done_c ? 0 : sample_cntr_f + rmii_tx_en;
       end
 
-      if(fsm_pstate ==  XMT_S)
-      begin
-        ifg_cntr_f            <=  ifg_val_c;
-      end
-      else if(fsm_pstate  ==  IFG_S)
-      begin
-        ifg_cntr_f            <=  ifg_cntr_f  - 1'b1;
-      end
-      else
-      begin
-        ifg_cntr_f            <=  ifg_cntr_f;
-      end
+      byte_cntr_f             <=  byte_cntr_f + sample_done_c;
     end
   end
 
-  assign  sample_cntr_en_c    =   (fsm_pstate == XMT_S) ? 1'b1  : 1'b0;
-  assign  sample_rdy_c        =   (sample_cntr_f  ==  'd9)  ? 1'b1  : 1'b0;
-  assign  wrap_data_val_c     =   (pkt_valid  & pkt_eop)  ? (pkt_size[PKT_SIZE_W-1:1]  - 1'b1)  : ((PKT_DATA_W >>  1) - 1);
-  assign  wrap_data_cntr_c    =   (data_cntr_f  ==  wrap_data_val_c) ? sample_rdy_c  : 1'b0;
-  assign  data_cntr_byte_w    =   data_cntr_f[4:2]; //get num of bytes
+  assign  sample_done_c       =   (sample_cntr_f  ==  4'd9) ? rmii_tx_en  : 1'b0;
 
-  //Select the ifg value based on configuration
-  assign  ifg_val_c           =   config_rs_mii_speed_100_n_10 ? IFG_100MBPS : IFG_10MBPS;
+  assign  pkt_ready           =   (byte_cntr_f  ==  2'd3) ? sample_done_c & pkt_valid : 1'b0;
 
-  //Check if the IFG condition is met -> counter is zero
-  assign  ifg_rdy_c           =   (ifg_cntr_f ==  {IFG_CNTR_W{1'b0}})  ? 1'b1  : 1'b0;
-
-  always@(*)
-  begin
-    next_state    =   fsm_pstate;
-
-    case(fsm_pstate)
-
-      IDLE_S  :
-      begin
-        pkt_ready        =   ~pkt_valid;
-
-        if(pkt_valid  & pkt_sop)
-        begin
-          next_state          =   XMT_S;
-        end
-      end
-
-      XMT_S :
-      begin
-        pkt_ready        =   wrap_data_cntr_c;
-
-        if(pkt_valid & pkt_eop  & wrap_data_cntr_c)
-        begin
-          next_state          =   IFG_S;
-        end
-      end
-
-      IFG_S :
-      begin
-        pkt_ready        =   1'b0;
-
-        if(ifg_rdy_c)
-        begin
-          next_state          =   IDLE_S;
-        end
-      end
-
-    endcase
-  end
-
-  /*  RMII Interface logic  */
-  always@(posedge  rmii_ref_clk, negedge rst_n)
+  /*
+    * RMII  Interface
+  */
+  always@(posedge rmii_ref_clk, negedge rst_n)
   begin
     if(~rst_n)
     begin
-      rmii_txd            <=  0;
-      rmii_tx_en          <=  0;
+      rmii_txd                <=  0;
+      rmii_tx_en              <=  0;
     end
     else
     begin
-      case(fsm_pstate)
-
-        IDLE_S  :
-        begin
-          if(pkt_valid  & pkt_sop)
-          begin
-            rmii_txd      <=  pkt_data[data_cntr_f +:  2];
-            rmii_tx_en    <=  1'b1;
-          end
-        end
-
-        XMT_S :
-        begin
-          rmii_tx_en      <=  (pkt_valid & pkt_eop) ? ~wrap_data_cntr_c : 1'b1;
-          rmii_txd        <=  pkt_data[data_cntr_f +:  2];
-        end
-
-        default :
-        begin
-          rmii_tx_en      <=  0;
-          rmii_txd        <=  0;
-        end
-
-      endcase
+      rmii_tx_en              <=  pkt_valid;
+      rmii_txd                <=  pkt_valid ? pkt_data[byte_cntr_f  +:  2]  : 0;
     end
   end
+
+
 
 endmodule // peg_l2_rs_rmii_tx
 
@@ -276,6 +150,8 @@ endmodule // peg_l2_rs_rmii_tx
  
 
  -- <Log>
+
+[31-01-2016  06:13:35 PM][mammenx] Simplified design to handle only byte-streams
 
 [31-01-2016  04:30:07 PM][mammenx] Fixed compilation errors
 
