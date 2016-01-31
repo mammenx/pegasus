@@ -50,17 +50,17 @@ module peg_l2_rs_rmii_tx #(
   input                       config_rs_mii_speed_100_n_10,
 
   //Packet interface from MAC TX
-  input                       pkt_valid,
-  input                       pkt_sop,
-  input                       pkt_eop,
-  input   [PKT_DATA_W-1:0]    pkt_data,
-  input   [PKT_SIZE_W-1:0]    pkt_size;
-  output                      pkt_ready,
-  input                       pkt_error,
+  input                           pkt_valid,
+  input                           pkt_sop,
+  input                           pkt_eop,
+  input       [PKT_DATA_W-1:0]    pkt_data,
+  input       [PKT_SIZE_W-1:0]    pkt_size,
+  output reg                      pkt_ready,
+  input                           pkt_error,
 
   //RMII interface to PHY
-  output  [1:0]               rmii_txd,
-  output                      rmii_tx_en,
+  output  reg [1:0]               rmii_txd,
+  output  reg                     rmii_tx_en,
   input                       rmii_ref_clk
 
 
@@ -253,7 +253,7 @@ enum  logic [1:0] { IDLE_S    = 2'd0,
 
         XMT_S :
         begin
-          rmii_tx_en      <=  (pkt_valid & pkt_eop) : ~wrap_data_cntr_c : 1'b1;
+          rmii_tx_en      <=  (pkt_valid & pkt_eop) ? ~wrap_data_cntr_c : 1'b1;
           rmii_txd        <=  pkt_data[data_cntr_f +:  2];
         end
 
@@ -276,6 +276,8 @@ endmodule // peg_l2_rs_rmii_tx
  
 
  -- <Log>
+
+[31-01-2016  04:30:07 PM][mammenx] Fixed compilation errors
 
 [30-06-2014  03:37:45 PM][mammenx] Changed packet data width to 8
 

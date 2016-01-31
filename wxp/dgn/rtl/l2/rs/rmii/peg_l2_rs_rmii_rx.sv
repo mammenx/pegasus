@@ -55,18 +55,16 @@ module peg_l2_rs_rmii_rs  #(
   input                       rmii_ref_clk,
 
   //Packet interface to MAC RX
-  output                      pkt_valid,
-  output                      pkt_sop,
-  output                      pkt_eop,
-  output  [PKT_DATA_W-1:0]    pkt_data,
-  output  [PKT_SIZE_W-1:0]    pkt_size,
-  input                       pkt_ready,
-  output                      pkt_error
+  output  reg                   pkt_valid,
+  output  reg                   pkt_sop,
+  output  reg                   pkt_eop,
+  output  reg [PKT_DATA_W-1:0]  pkt_data,
+  output  reg [PKT_SIZE_W-1:0]  pkt_size,
+  input   reg                   pkt_ready,
+  output  reg                   pkt_error
 
 
   //--------------------- Interfaces --------------------
-
-  peg_l2_rmii_intf            mii_intf,     //mac_rx
 
   );
 
@@ -84,12 +82,8 @@ module peg_l2_rs_rmii_rs  #(
 
 
 //----------------------- Output Register Declaration ---------------------
-  reg                         pkt_valid;
-  reg                         pkt_sop;
-  reg                         pkt_eop;
-  reg   [PKT_DATA_W-1:0]      pkt_data;
-  reg   [PKT_SIZE_W-1:0]      pkt_size;
-  reg                         pkt_error;
+
+
 
 //----------------------- Internal Register Declarations ------------------
   reg   [3:0]                 sample_cntr_f;
@@ -102,8 +96,8 @@ module peg_l2_rs_rmii_rs  #(
 
   wire  [PKT_DATA_W-1:0]      pkt_data_nxt_c;
   wire                        valid_preamble_sfd_pattern_c;
-  wire                        data_valid_nxt_c;
-  wire                        eop_nxt_c;
+  reg                         data_valid_nxt_c;
+  reg                         eop_nxt_c;
 
 //----------------------- Internal Interface Declarations -----------------
 
@@ -249,7 +243,7 @@ enum  logic [1:0] { IDLE_S        = 2'd0,
   end
 
   //Shift in valid data
-  assign  pkt_data_nxt_c  = sample_rdy_c  ? {rmii_rxd,  pkt_data[PKT_DATA_W-3:0]}
+  assign  pkt_data_nxt_c  = sample_rdy_c  ? {rmii_rxd,  pkt_data[PKT_DATA_W-1:2]}
                                           : pkt_data;
 
   //Check for valid preamble SFD pattern
@@ -265,6 +259,8 @@ endmodule // peg_l2_rs_rmii_rs
  
 
  -- <Log>
+
+[31-01-2016  04:30:07 PM][mammenx] Fixed compilation errors
 
 [30-06-2014  03:37:45 PM][mammenx] Changed packet data width to 8
 
