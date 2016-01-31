@@ -15,6 +15,7 @@
 ../ovm-2.1.2/src/ovm_pkg.sv
 
 //Packages
+../tb/pkg/peg_tb_common_pkg.sv
 
 
 //Interfaces
