@@ -88,8 +88,7 @@
 
     /*  DUT */
     peg_l2_rs_rmii #(
-      .PKT_DATA_W (8),
-      .PKT_SIZE_W (16)
+      .PKT_DATA_W (8)
 
     ) u_peg_l2_rs_rmii  (
 
@@ -101,7 +100,6 @@
       .pkt_tx_sop     ('d0),
       .pkt_tx_eop     ('d0),
       .pkt_tx_data    ('d0),
-      .pkt_tx_size    ('d0),
       .pkt_tx_ready   (),
       .pkt_tx_error   ('d0),
 
@@ -109,7 +107,6 @@
       .pkt_rx_sop     (),
       .pkt_rx_eop     (),
       .pkt_rx_data    (),
-      .pkt_rx_size    (),
       .pkt_rx_ready   (1'b1),
       .pkt_rx_error   (),
 
