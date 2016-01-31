@@ -38,6 +38,9 @@ class peg_rmii_base_test extends ovm_test;
     parameter type  RMII_RX_INTF_TYPE = virtual peg_rmii_intf.TB_RX;
     parameter type  RMII_RX_SEQR_TYPE = peg_rmii_rx_seqr#(RMII_PKT_TYPE);
 
+    parameter type  RAW_PKT_TYPE      = peg_pkt_base;
+    parameter type  L2_PKT_TYPE       = peg_l2_pkt;
+
     `ovm_component_utils(peg_rmii_base_test)
 
     //Declare environment
@@ -130,6 +133,8 @@ endclass : peg_rmii_base_test
  
 
  -- <Log>
+
+[31-01-2016  04:28:52 PM][mammenx] Modifications for adding RMII L2 test
 
 
  --------------------------------------------------------------------------

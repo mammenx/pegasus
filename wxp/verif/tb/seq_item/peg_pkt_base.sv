@@ -95,13 +95,13 @@
 
 
     //These functions have to be overriden by children
-    function  void  packHeaderBits();
+    virtual function  void  packHeaderBits();
       mbits.delete;
       pack_idx  = 0;
     endfunction : packHeaderBits
 
 
-    function  void  packBits();
+    virtual function  void  packBits();
       packHeaderBits();
 
       foreach(payload[i])
@@ -110,13 +110,13 @@
     endfunction : packBits
 
 
-    function  void  unpackHeaderBits();
+    virtual function  void  unpackHeaderBits();
       mbits.delete;
       pack_idx  = 0;
     endfunction : unpackHeaderBits
 
 
-    function  void  unpackBits();
+    virtual function  void  unpackBits();
       int payloadSize = mbits.size  / $bits(byte);  //At this stage, only payload should remain
 
       payload = new[payloadSize];
@@ -139,6 +139,8 @@
  
 
  -- <Log>
+
+[31-01-2016  04:28:51 PM][mammenx] Modifications for adding RMII L2 test
 
 
  --------------------------------------------------------------------------

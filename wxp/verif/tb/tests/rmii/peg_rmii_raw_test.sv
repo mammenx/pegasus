@@ -35,7 +35,7 @@ class peg_rmii_raw_test extends peg_rmii_base_test;
     `ovm_component_utils(peg_rmii_raw_test)
 
     //Sequences
-    peg_raw_pkt_seq#(super.RMII_PKT_TYPE,super.RMII_RX_SEQR_TYPE)   seq;
+    peg_raw_pkt_seq#(super.RAW_PKT_TYPE,super.RMII_RX_SEQR_TYPE)   seq;
 
     OVM_FILE  f;
     ovm_table_printer printer;
@@ -62,7 +62,7 @@ class peg_rmii_raw_test extends peg_rmii_base_test;
 
       ovm_report_info(get_full_name(),"Start of build",OVM_LOW);
 
-      seq = peg_raw_pkt_seq#(super.RMII_PKT_TYPE,super.RMII_RX_SEQR_TYPE)::type_id::create("raw_pkt_seq", this);
+      seq = peg_raw_pkt_seq#(super.RAW_PKT_TYPE,super.RMII_RX_SEQR_TYPE)::type_id::create("raw_pkt_seq", this);
 
       ovm_report_info(get_full_name(),"End of build",OVM_LOW);
     endfunction : build
@@ -92,6 +92,8 @@ endclass : peg_rmii_raw_test
  
 
  -- <Log>
+
+[31-01-2016  04:28:52 PM][mammenx] Modifications for adding RMII L2 test
 
 
  --------------------------------------------------------------------------

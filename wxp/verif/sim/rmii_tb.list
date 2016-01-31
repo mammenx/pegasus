@@ -19,8 +19,10 @@
 
 //Sequences
 `include  "peg_raw_pkt_seq.sv"
+`include  "peg_l2_pkt_seq.sv"
 
 //Tests
 `include  "peg_rmii_base_test.sv"
 `include  "peg_rmii_raw_test.sv"
+`include  "peg_rmii_l2_test.sv"
 

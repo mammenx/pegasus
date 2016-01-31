@@ -69,7 +69,7 @@
     endfunction : new
 
 
-    function  void  packHeaderBits();
+    virtual function  void  packHeaderBits();
       super.packHeaderBits();
 
       packFieldBits(l2_preamble, $bits(l2_preamble));
@@ -81,7 +81,7 @@
     endfunction : packHeaderBits
 
 
-    function  void  packBits();
+    virtual function  void  packBits();
       packHeaderBits();
 
       foreach(payload[i])
@@ -90,7 +90,7 @@
     endfunction : packBits
 
 
-    function  void  unpackHeaderBits();
+    virtual function  void  unpackHeaderBits();
       l2_len_type  = unpackFieldBits($bits(l2_len_type));
       l2_saddr     = unpackFieldBits($bits(l2_saddr));
       l2_daddr     = unpackFieldBits($bits(l2_daddr));
@@ -101,7 +101,7 @@
     endfunction : unpackHeaderBits
 
 
-    function  void  unpackBits();
+    virtual function  void  unpackBits();
       int payloadSize;
 
       l2_fcs = unpackFieldBits($bits(l2_fcs));
@@ -128,6 +128,8 @@
  
 
  -- <Log>
+
+[31-01-2016  04:28:51 PM][mammenx] Modifications for adding RMII L2 test
 
  --------------------------------------------------------------------------
 */
