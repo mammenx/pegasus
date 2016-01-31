@@ -37,7 +37,7 @@ show_dir:
 git:
 	rm -rf work
 	rm -rf logs
-	rm -rf snaps
+	rm -rf obj
 	rm -f *.ini transcript* *.wlf *.obj *.log *.h *.dll *.so *.ppm *.raw
 	rm -rf $(DGN_LIB)
 
