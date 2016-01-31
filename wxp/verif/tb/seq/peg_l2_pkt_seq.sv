@@ -43,10 +43,16 @@
     /*  Linking with p_sequencer  */
     `ovm_declare_p_sequencer(SEQR_TYPE)
 
+    //Fields to be set from test case
+    bit [(6*8)-1:0] l2_daddr;
+    bit [(6*8)-1:0] l2_saddr;
+    bit [(2*8)-1:0] l2_len_type;
+    bit [(4*8)-1:0] l2_fcs;
 
     /*  Constructor */
     function new(string name  = "peg_l2_pkt_seq");
       super.new(name);
+
     endfunction
 
     /*  Body of sequence  */
@@ -57,10 +63,13 @@
 
       $cast(pkt,create_item(PKT_TYPE::get_type(),m_sequencer,$psprintf("l2_pkt")));
 
-      start_item(pkt);  //start_item has wait_for_grant()
+      pkt.l2_daddr    = l2_daddr;
+      pkt.l2_saddr    = l2_saddr;
+      pkt.l2_len_type = l2_len_type;
+      pkt.l2_fcs      = l2_fcs;
 
-      pkt.l2_daddr  = 'h1;
-      pkt.l2_saddr  = 'h2;
+
+      start_item(pkt);  //start_item has wait_for_grant()
 
       p_sequencer.ovm_report_info(get_name(),$psprintf("Generated pkt - \n%s", pkt.sprint()),OVM_LOW);
 
@@ -81,6 +90,8 @@
  
 
  -- <Log>
+
+[01-02-2016  12:32:18 AM][mammenx] Added DPI-C randomisation support
 
 [31-01-2016  04:27:46 PM][mammenx] Initial Commit
 

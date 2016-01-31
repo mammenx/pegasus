@@ -29,6 +29,8 @@
  --------------------------------------------------------------------------
 */
 
+import  peg_tb_common_pkg::*;
+
 
 class peg_rmii_l2_test extends peg_rmii_base_test;
 
@@ -73,6 +75,9 @@ class peg_rmii_l2_test extends peg_rmii_base_test;
     virtual task run ();
       ovm_report_info(get_full_name(),"Start of run",OVM_LOW);
 
+      $cast(seq.l2_daddr, L2_PKT_TYPE::genRandField($bits(seq.l2_daddr)));
+      $cast(seq.l2_saddr, L2_PKT_TYPE::genRandField($bits(seq.l2_saddr)));
+
       seq.start(super.env.rmii_agent.rx.seqr);
 
       #1000;
@@ -92,6 +97,8 @@ endclass : peg_rmii_l2_test
  
 
  -- <Log>
+
+[01-02-2016  12:32:18 AM][mammenx] Added DPI-C randomisation support
 
 [31-01-2016  04:27:46 PM][mammenx] Initial Commit
 

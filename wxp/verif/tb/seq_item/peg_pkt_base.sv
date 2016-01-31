@@ -32,9 +32,8 @@
 `ifndef __PEG_PKT_BASE
 `define __PEG_PKT_BASE
 
-  `define PEG_MAX_FIELD_LEN 256
+  import  peg_tb_common_pkg::*;
 
-  typedef bit [`PEG_MAX_FIELD_LEN-1:0]  peg_integral_t;
 
   class peg_pkt_base extends ovm_sequence_item;
 
@@ -56,13 +55,28 @@
       super.new(name);
       pack_idx  = 0;
       payload_offset  = 0;
+
     endfunction : new
 
 
+    static  function  peg_integral_t  genRandField(int  size);
+      bit tmp [];
+      
+      tmp = new[size];
+
+      randBitVec(tmp);
+
+      for(int i=0; i<size; i++)
+        genRandField[i] = tmp[i];
+
+      tmp.delete;
+
+    endfunction : genRandField
+
     function  void  packFieldBits (peg_integral_t val, int size);
 
-      if(size > `PEG_MAX_FIELD_LEN)
-        ovm_report_error({get_name(),"[packFieldBits]"},$psprintf("Size(%1d)i is greater than max(%1d)",size,`PEG_MAX_FIELD_LEN),OVM_LOW);
+      if(size > PEG_MAX_FIELD_LEN)
+        ovm_report_error({get_name(),"[packFieldBits]"},$psprintf("Size(%1d)i is greater than max(%1d)",size,PEG_MAX_FIELD_LEN),OVM_LOW);
 
       //Extend the size of the array
       mbits = new[pack_idx+size](mbits);
@@ -139,6 +153,8 @@
  
 
  -- <Log>
+
+[01-02-2016  12:32:18 AM][mammenx] Added DPI-C randomisation support
 
 [31-01-2016  04:28:51 PM][mammenx] Modifications for adding RMII L2 test
 
