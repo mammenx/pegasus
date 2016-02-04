@@ -2,7 +2,9 @@
 +incdir+../tb/agents/rmii
 +incdir+../tb/agents/rmii/rx
 +incdir+../tb/agents/rmii/tx
++incdir+../tb/agents/pkt
 +incdir+../tb/env
++incdir+../tb/sb
 +incdir+../tb/seq
 +incdir+../tb/seq_item
 +incdir+../tb/tests
@@ -20,6 +22,7 @@
 
 //Interfaces
 ../../verif/tb/intf/peg_rmii_intf.sv
+../../verif/tb/intf/peg_pkt_intf.sv
 
 
 //TB TOP

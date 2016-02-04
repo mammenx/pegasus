@@ -1,5 +1,6 @@
 
-TEST_NAME=peg_rmii_l2_test
+#TEST_NAME=peg_rmii_l2_test
+TEST_NAME=peg_rmii_raw_test
 
 TB_TOP=peg_rmii_tb_top
 

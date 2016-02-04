@@ -4,15 +4,22 @@
 
 //Agents
 `include  "peg_rmii_rx_drvr.sv"
+`include  "peg_rmii_rx_mon.sv"
 `include  "peg_rmii_rx_seqr.sv"
 `include  "peg_rmii_rx_agent.sv"
 `include  "peg_rmii_tx_mon.sv"
 `include  "peg_rmii_tx_agent.sv"
 `include  "peg_rmii_agent.sv"
 
+`include  "peg_pkt_drvr.sv"
+`include  "peg_pkt_mon.sv"
+`include  "peg_pkt_seqr.sv"
+`include  "peg_pkt_agent.sv"
+
 //Sniffers
 
 //Scoreboards
+`include  "peg_rmii_sb.sv"
 
 //Environments
 `include  "peg_rmii_env.sv"
