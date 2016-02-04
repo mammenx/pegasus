@@ -38,13 +38,18 @@
   class peg_pkt_base extends ovm_sequence_item;
 
     //fields
+    static  int count = 0;
+    int id  = count;
     int pack_idx;
     int payload_offset;
     byte  unsigned  payload [];
     bit mbits [];
+    byte  unsigned  ipg;
 
     //registering with factory
     `ovm_object_utils_begin(peg_pkt_base)
+      `ovm_field_int(id, OVM_ALL_ON|OVM_DEC) 
+      `ovm_field_int(ipg, OVM_ALL_ON|OVM_UNSIGNED) 
       `ovm_field_int(pack_idx, OVM_ALL_ON|OVM_DEC) 
       `ovm_field_array_int(mbits, OVM_ALL_ON|OVM_BIN) 
       `ovm_field_array_int(payload, OVM_ALL_ON|OVM_HEX) 
@@ -55,8 +60,15 @@
       super.new(name);
       pack_idx  = 0;
       payload_offset  = 0;
+      ipg       = 96; //bit-times
 
     endfunction : new
+
+
+    function  void  updateId();
+      id  = count++;
+      this.set_name($psprintf("%s_%1d",this.get_type_name(),id));
+    endfunction : updateId
 
 
     static  function  peg_integral_t  genRandField(int  size);
@@ -73,10 +85,11 @@
 
     endfunction : genRandField
 
+
     function  void  packFieldBits (peg_integral_t val, int size);
 
       if(size > PEG_MAX_FIELD_LEN)
-        ovm_report_error({get_name(),"[packFieldBits]"},$psprintf("Size(%1d)i is greater than max(%1d)",size,PEG_MAX_FIELD_LEN),OVM_LOW);
+        ovm_report_fatal({get_name(),"[packFieldBits]"},$psprintf("Size(%1d)i is greater than max(%1d) in pkt:\n%s",size,PEG_MAX_FIELD_LEN,this.sprint()),OVM_LOW);
 
       //Extend the size of the array
       mbits = new[pack_idx+size](mbits);
@@ -93,7 +106,7 @@
     function  peg_integral_t  unpackFieldBits (int size);
 
       if(size > pack_idx)
-        ovm_report_error({get_name(),"[unpackFieldBits]"},$psprintf("Size(%1d)i is greater than pack_idx(%1d)",size,pack_idx),OVM_LOW);
+        ovm_report_fatal({get_name(),"[unpackFieldBits]"},$psprintf("Size(%1d)i is greater than pack_idx(%1d) in pkt:\n%s",size,pack_idx,this.sprint()),OVM_LOW);
 
       unpackFieldBits = 'b0;
       pack_idx  -=  size;
@@ -141,6 +154,27 @@
     endfunction : unpackBits
 
 
+    virtual function  string  checkFields(peg_pkt_base  exp);
+      string  res = "";
+
+      if(this.payload.size  !=  exp.payload.size)
+      begin
+        res = {res,$psprintf("Mismatch in payload.size : Expected %1d Actual %1d\n",exp.payload.size,this.payload.size)};
+        return  res;
+      end
+
+      for(int i=0;  i<this.payload.size;  i++)
+      begin
+        if(this.payload[i]  !=  exp.payload[i])
+        begin
+          res = {res,$psprintf("Mismatch in payload[%1d] : Expected 0x%x Actual 0x%x\n",i,exp.payload[i],this.payload[i])};
+        end
+      end
+
+      return  res;
+
+    endfunction : checkFields
+
   endclass  : peg_pkt_base
 
 `endif
@@ -153,6 +187,8 @@
  
 
  -- <Log>
+
+[04-02-2016  04:04:33 PM][mammenx] Added peg_pkt_agent & RMII SB
 
 [01-02-2016  12:32:18 AM][mammenx] Added DPI-C randomisation support
 

@@ -43,10 +43,15 @@
     /*  Linking with p_sequencer  */
     `ovm_declare_p_sequencer(SEQR_TYPE)
 
+    int payloadSize;
+    byte  unsigned  ipg;
 
     /*  Constructor */
     function new(string name  = "peg_raw_pkt_seq");
       super.new(name);
+
+      payloadSize = 64;
+      ipg = 96;
     endfunction
 
     /*  Body of sequence  */
@@ -59,18 +64,12 @@
 
       start_item(pkt);  //start_item has wait_for_grant()
 
-      pkt.payload = new[100];
-
-      for(int i=0;  i<7; i++)
-      begin
-        pkt.payload[i]  = 'h55;
-      end
-
-      pkt.payload[7]    = 'hd5;
+      pkt.payload = new[payloadSize];
+      pkt.ipg     = ipg;
 
       for(int i=8;  i<pkt.payload.size; i++)
       begin
-        pkt.payload[i]  = $random;
+        $cast(pkt.payload[i], PKT_TYPE::genRandField($bits(pkt.payload[i])));
       end
 
       p_sequencer.ovm_report_info(get_name(),$psprintf("Generated pkt - \n%s", pkt.sprint()),OVM_LOW);
@@ -92,6 +91,8 @@
  
 
  -- <Log>
+
+[04-02-2016  04:04:33 PM][mammenx] Added peg_pkt_agent & RMII SB
 
 [28-05-14 20:18:21] [mammenx] Moved log section to bottom of file
 

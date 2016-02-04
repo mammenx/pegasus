@@ -62,6 +62,7 @@
       p_sequencer.ovm_report_info(get_name(),"Start of peg_l2_pkt_seq",OVM_LOW);
 
       $cast(pkt,create_item(PKT_TYPE::get_type(),m_sequencer,$psprintf("l2_pkt")));
+      pkt.updateId();
 
       pkt.l2_daddr    = l2_daddr;
       pkt.l2_saddr    = l2_saddr;
@@ -90,6 +91,8 @@
  
 
  -- <Log>
+
+[04-02-2016  04:04:33 PM][mammenx] Added peg_pkt_agent & RMII SB
 
 [01-02-2016  12:32:18 AM][mammenx] Added DPI-C randomisation support
 

@@ -73,7 +73,12 @@ class peg_rmii_raw_test extends peg_rmii_base_test;
     virtual task run ();
       ovm_report_info(get_full_name(),"Start of run",OVM_LOW);
 
-      seq.start(super.env.rmii_agent.rx.seqr);
+      repeat(10)
+      begin
+        seq.payloadSize = $urandom  % 1000;
+        seq.ipg         = $urandom;
+        seq.start(super.env.rmii_agent.rx.seqr);
+      end
 
       #1000;
 
@@ -92,6 +97,8 @@ endclass : peg_rmii_raw_test
  
 
  -- <Log>
+
+[04-02-2016  04:04:34 PM][mammenx] Added peg_pkt_agent & RMII SB
 
 [31-01-2016  04:28:52 PM][mammenx] Modifications for adding RMII L2 test
 

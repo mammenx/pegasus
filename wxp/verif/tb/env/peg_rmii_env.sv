@@ -34,16 +34,22 @@
 
   class peg_rmii_env  #(  parameter type  RMII_PKT_TYPE     = peg_pkt_base,
                           parameter type  RMII_TX_INTF_TYPE = virtual rmii_intf.TB_TX,
-                          parameter type  RMII_RX_INTF_TYPE = virtual rmii_intf.TB_RX
+                          parameter type  RMII_RX_INTF_TYPE = virtual rmii_intf.TB_RX,
+                          parameter       MAC_DATA_W        = 8,
+                          parameter type  MAC_PKT_TYPE      = peg_pkt_base,
+                          parameter type  MAC_INTF_TYPE     = virtual peg_pkt_intf#(MAC_DATA_W)
                       ) extends ovm_env;
 
 
     /*  Register with factory */
-    `ovm_component_param_utils(peg_rmii_env#(RMII_PKT_TYPE,RMII_TX_INTF_TYPE,RMII_RX_INTF_TYPE))
+    `ovm_component_param_utils(peg_rmii_env#(RMII_PKT_TYPE,RMII_TX_INTF_TYPE,RMII_RX_INTF_TYPE,MAC_DATA_W,MAC_PKT_TYPE,MAC_INTF_TYPE))
 
 
     //Declare agents, scoreboards
-    peg_rmii_agent#(RMII_PKT_TYPE,RMII_TX_INTF_TYPE,RMII_RX_INTF_TYPE) rmii_agent;
+    peg_rmii_agent#(RMII_PKT_TYPE,RMII_TX_INTF_TYPE,RMII_RX_INTF_TYPE)  rmii_agent;
+    peg_pkt_agent#(MAC_DATA_W,MAC_PKT_TYPE,MAC_INTF_TYPE)               mac_tx_agent;
+    peg_pkt_agent#(MAC_DATA_W,MAC_PKT_TYPE,MAC_INTF_TYPE)               mac_rx_agent;
+    peg_rmii_sb#(RMII_PKT_TYPE,RMII_PKT_TYPE)                           rmii_sb;
 
 
     OVM_FILE  f;
@@ -69,7 +75,10 @@
 
       ovm_report_info(get_name(),"Start of build ",OVM_LOW);
 
-      rmii_agent  = peg_rmii_agent#(RMII_PKT_TYPE,RMII_TX_INTF_TYPE,RMII_RX_INTF_TYPE)::type_id::create("rmii_agent",  this);
+      rmii_agent    = peg_rmii_agent#(RMII_PKT_TYPE,RMII_TX_INTF_TYPE,RMII_RX_INTF_TYPE)::type_id::create("rmii_agent",  this);
+      mac_tx_agent  = peg_pkt_agent#(MAC_DATA_W,MAC_PKT_TYPE,MAC_INTF_TYPE)::type_id::create("mac_tx_agent",  this);
+      mac_rx_agent  = peg_pkt_agent#(MAC_DATA_W,MAC_PKT_TYPE,MAC_INTF_TYPE)::type_id::create("mac_rx_agent",  this);
+      rmii_sb       = peg_rmii_sb#(RMII_PKT_TYPE,RMII_PKT_TYPE)::type_id::create("rmii_sb",  this);
 
       ovm_report_info(get_name(),"End of build ",OVM_LOW);
     endfunction
@@ -81,6 +90,11 @@
 
       ovm_report_info(get_name(),"START of connect ",OVM_LOW);
 
+      mac_tx_agent.mon.Mon2Sb_port.connect(rmii_sb.Mon_tx_sent_2Sb_port);
+      rmii_agent.tx.mon.Mon2Sb_port.connect(rmii_sb.Mon_tx_rcvd_2Sb_port);
+
+      rmii_agent.rx.mon.Mon2Sb_port.connect(rmii_sb.Mon_rx_sent_2Sb_port);
+      mac_rx_agent.mon.Mon2Sb_port.connect(rmii_sb.Mon_rx_rcvd_2Sb_port);
 
       ovm_report_info(get_name(),"END of connect ",OVM_LOW);
     endfunction
@@ -98,6 +112,8 @@
  
 
  -- <Log>
+
+[04-02-2016  04:04:33 PM][mammenx] Added peg_pkt_agent & RMII SB
 
 [28-05-14 20:18:21] [mammenx] Moved log section to bottom of file
 

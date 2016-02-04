@@ -22,18 +22,17 @@
 /*
  --------------------------------------------------------------------------
  -- Project Code      : pegasus
- -- Component Name    : peg_rmii_tx_mon
+ -- Component Name    : peg_rmii_rx_mon
  -- Author            : mammenx
- -- Function          : This class monitors RMII TX and sends packets
-                        to scoreboard.
+ -- Function          : This monitor captures RMII RX data into byte packets.
  --------------------------------------------------------------------------
 */
 
-`ifndef __PEG_peg_rmii_tx_mon
-`define __PEG_peg_rmii_tx_mon
+`ifndef __PEG_RMII_RX_MON
+`define __PEG_RMII_RX_MON
 
-  class peg_rmii_tx_mon #(type  PKT_TYPE  = peg_pkt_base,
-                          type  INTF_TYPE = virtual peg_rmii_intf.TB_TX
+  class peg_rmii_rx_mon #(type  PKT_TYPE  = peg_pkt_base,
+                          type  INTF_TYPE = virtual peg_rmii_intf.TB_RX
                         ) extends ovm_component;
 
     INTF_TYPE intf;
@@ -42,21 +41,20 @@
 
     OVM_FILE  f;
 
-
     mailbox#(byte unsigned) byte_mbox;
 
     shortint  enable;
     shortint  speed_100_n_10;
 
     /*  Register with factory */
-    `ovm_component_param_utils_begin(peg_rmii_tx_mon#(PKT_TYPE, INTF_TYPE))
+    `ovm_component_param_utils_begin(peg_rmii_rx_mon#(PKT_TYPE, INTF_TYPE))
       `ovm_field_int(enable,  OVM_ALL_ON);
       `ovm_field_int(speed_100_n_10,  OVM_ALL_ON);
     `ovm_component_utils_end
 
 
     /*  Constructor */
-    function new( string name = "peg_rmii_tx_mon" , ovm_component parent = null) ;
+    function new( string name = "peg_rmii_rx_mon" , ovm_component parent = null) ;
       super.new( name , parent );
     endfunction : new
 
@@ -113,6 +111,7 @@
     endtask : parse_bytes
 
 
+
     /*  Run */
     task run();
       byte  unsigned  temp;
@@ -133,9 +132,10 @@
               begin
                 for(int i=0;  i<8;  i=i+2)
                 begin
-                  @(intf.cb_tx  iff intf.cb_tx.tx_en ==  1);
+                  @(intf.cb_rx  iff intf.cb_rx.crs_dv ==  1);
 
-                  temp[i  +:  2]  = intf.cb_tx.txd;
+                  temp[i  +:  2]  = intf.cb_rx.rxd;
+                  ovm_report_info({get_name(),"[run]"},$psprintf("%1d rxd = 0x%x,temp = 0x%x",i,intf.cb_rx.rxd,temp),OVM_LOW);
                 end
 
                 byte_mbox.put(temp);
@@ -148,11 +148,11 @@
               begin
                 for(int i=0;  i<8;  i=i+2)
                 begin
-                  @(intf.cb_tx  iff intf.cb_tx.tx_en ==  1);
+                  @(intf.cb_rx  iff intf.cb_rx.crs_dv ==  1);
 
-                  temp[i  +:  2]  = intf.cb_tx.txd;
+                  temp[i  +:  2]  = intf.cb_rx.rxd;
 
-                  repeat(9) @(intf.cb_tx);  //sample 1/10 clocks
+                  repeat(9) @(intf.cb_rx);  //sample 1/10 clocks
                 end
 
                 byte_mbox.put(temp);
@@ -164,17 +164,25 @@
           begin
             parse_bytes();
           end
+
+          begin
+            forever
+            begin
+              @(intf.cb_rx.rx_er);
+              ovm_report_warning({get_name(),"[run]"},"RX Error detected!",OVM_LOW);
+            end
+          end
         join
       end
       else
       begin
-        ovm_report_info({get_name(),"[run]"},"peg_rmii_tx_mon  is disabled",OVM_LOW);
+        ovm_report_info({get_name(),"[run]"},"peg_rmii_rx_mon  is disabled",OVM_LOW);
         ovm_report_info({get_name(),"[run]"},"Shutting down .....",OVM_LOW);
       end
     endtask : run
 
 
-  endclass  : peg_rmii_tx_mon
+  endclass  : peg_rmii_rx_mon
 
 `endif
 

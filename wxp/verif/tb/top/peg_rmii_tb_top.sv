@@ -56,7 +56,9 @@
     logic rst_n;
 
     //Interfaces
-    peg_rmii_intf   rmii_intf(clk_50,rst_n);
+    peg_rmii_intf     rmii_intf(clk_50,rst_n);
+    peg_pkt_intf#(8)  mac_tx_intf(clk_50,rst_n);
+    peg_pkt_intf#(8)  mac_rx_intf(clk_50,rst_n);
 
 
     /////////////////////////////////////////////////////
@@ -96,19 +98,19 @@
 
       .config_rs_mii_speed_100_n_10   (1'b1),
 
-      .pkt_tx_valid   ('d0),
-      .pkt_tx_sop     ('d0),
-      .pkt_tx_eop     ('d0),
-      .pkt_tx_data    ('d0),
-      .pkt_tx_ready   (),
-      .pkt_tx_error   ('d0),
+      .pkt_tx_valid   (mac_tx_intf.valid),
+      .pkt_tx_sop     (mac_tx_intf.sop  ),
+      .pkt_tx_eop     (mac_tx_intf.eop  ),
+      .pkt_tx_data    (mac_tx_intf.data ),
+      .pkt_tx_ready   (mac_tx_intf.ready),
+      .pkt_tx_error   (mac_tx_intf.error),
 
-      .pkt_rx_valid   (),
-      .pkt_rx_sop     (),
-      .pkt_rx_eop     (),
-      .pkt_rx_data    (),
-      .pkt_rx_ready   (1'b1),
-      .pkt_rx_error   (),
+      .pkt_rx_valid   (mac_rx_intf.valid),
+      .pkt_rx_sop     (mac_rx_intf.sop  ),
+      .pkt_rx_eop     (mac_rx_intf.eop  ),
+      .pkt_rx_data    (mac_rx_intf.data ),
+      .pkt_rx_ready   (mac_rx_intf.ready),
+      .pkt_rx_error   (mac_rx_intf.error),
 
       .rmii_rx_er     (rmii_intf.rx_er),
       .rmii_crs_dv    (rmii_intf.crs_dv),
@@ -140,6 +142,8 @@
  
 
  -- <Log>
+
+[04-02-2016  04:04:34 PM][mammenx] Added peg_pkt_agent & RMII SB
 
 [28-05-14 20:18:21] [mammenx] Moved log section to bottom of file
 

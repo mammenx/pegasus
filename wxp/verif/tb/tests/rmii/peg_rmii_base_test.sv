@@ -38,13 +38,17 @@ class peg_rmii_base_test extends ovm_test;
     parameter type  RMII_RX_INTF_TYPE = virtual peg_rmii_intf.TB_RX;
     parameter type  RMII_RX_SEQR_TYPE = peg_rmii_rx_seqr#(RMII_PKT_TYPE);
 
+    parameter       MAC_DATA_W        = 8;
+    parameter type  MAC_PKT_TYPE      = peg_pkt_base;
+    parameter type  MAC_INTF_TYPE     = virtual peg_pkt_intf#(MAC_DATA_W);
+
     parameter type  RAW_PKT_TYPE      = peg_pkt_base;
     parameter type  L2_PKT_TYPE       = peg_l2_pkt;
 
     `ovm_component_utils(peg_rmii_base_test)
 
     //Declare environment
-    peg_rmii_env#(RMII_PKT_TYPE,RMII_TX_INTF_TYPE,RMII_RX_INTF_TYPE)   env;
+    peg_rmii_env#(RMII_PKT_TYPE,RMII_TX_INTF_TYPE,RMII_RX_INTF_TYPE,MAC_DATA_W,MAC_PKT_TYPE,MAC_INTF_TYPE)   env;
 
     //Sequences
 
@@ -55,6 +59,7 @@ class peg_rmii_base_test extends ovm_test;
     /*  Constructor */
     function new (string name="peg_rmii_base_test", ovm_component parent=null);
         super.new (name, parent);
+
     endfunction : new 
 
 
@@ -74,6 +79,17 @@ class peg_rmii_base_test extends ovm_test;
       ovm_report_info(get_full_name(),"Start of build",OVM_LOW);
 
       env = new("peg_rmii_env", this);
+
+      print_config_matches = 1;
+      set_config_int("*env.mac_tx_agent.peg_pkt_drvr*", "enable", 1);
+      set_config_int("*env.mac_tx_agent.peg_pkt_drvr*", "mode",   0); //master
+      set_config_int("*env.mac_tx_agent.peg_pkt_drvr*", "data_mode",   1);  //bytestream
+      set_config_int("*env.mac_tx_agent.peg_pkt_mon*",  "data_mode",   1);  //bytestream
+
+      set_config_int("*env.mac_rx_agent.peg_pkt_drvr*", "enable", 1);
+      set_config_int("*env.mac_rx_agent.peg_pkt_drvr*", "mode",   1); //slave
+      set_config_int("*env.mac_rx_agent.peg_pkt_drvr*", "data_mode",   1);  //bytestream
+      set_config_int("*env.mac_rx_agent.peg_pkt_mon*",  "data_mode",   1);  //bytestream
 
 
       printer = new();
@@ -96,6 +112,12 @@ class peg_rmii_base_test extends ovm_test;
       //Make connections from DUT to TB components
       this.env.rmii_agent.tx.mon.intf   = $root.peg_rmii_tb_top.rmii_intf;
       this.env.rmii_agent.rx.drvr.intf  = $root.peg_rmii_tb_top.rmii_intf;
+      this.env.rmii_agent.rx.mon.intf   = $root.peg_rmii_tb_top.rmii_intf;
+
+      this.env.mac_tx_agent.drvr.intf   = $root.peg_rmii_tb_top.mac_tx_intf;
+      this.env.mac_tx_agent.mon.intf    = $root.peg_rmii_tb_top.mac_tx_intf;
+      this.env.mac_rx_agent.drvr.intf   = $root.peg_rmii_tb_top.mac_rx_intf;
+      this.env.mac_rx_agent.mon.intf    = $root.peg_rmii_tb_top.mac_rx_intf;
 
       ovm_report_info(get_full_name(),"End of connect",OVM_LOW);
     endfunction : connect
@@ -104,6 +126,11 @@ class peg_rmii_base_test extends ovm_test;
     /*  End of Elaboration  */
     function void end_of_elaboration();
       ovm_report_info(get_full_name(),"End_of_elaboration", OVM_LOG);
+
+      set_config_int("env.mac_tx_agent.drvr", "mode",   1);
+      set_config_int("env.mac_tx_agent.mon",  "mode",   1);
+      set_config_int("env.mac_rx_agent.drvr", "enable", 0);
+      set_config_int("env.mac_rx_agent.mon",  "mode",   1);
 
       ovm_report_info(get_full_name(),$psprintf("OVM Hierarchy -\n%s",  this.sprint(printer)), OVM_LOG);
       print();
@@ -133,6 +160,8 @@ endclass : peg_rmii_base_test
  
 
  -- <Log>
+
+[04-02-2016  04:04:33 PM][mammenx] Added peg_pkt_agent & RMII SB
 
 [31-01-2016  04:28:52 PM][mammenx] Modifications for adding RMII L2 test
 

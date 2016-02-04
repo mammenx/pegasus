@@ -87,6 +87,8 @@
       foreach(payload[i])
         packFieldBits(payload[i], $bits(byte));
 
+      packFieldBits(l2_fcs, $bits(l2_fcs));
+
     endfunction : packBits
 
 
@@ -128,6 +130,8 @@
  
 
  -- <Log>
+
+[04-02-2016  04:04:33 PM][mammenx] Added peg_pkt_agent & RMII SB
 
 [31-01-2016  04:28:51 PM][mammenx] Modifications for adding RMII L2 test
 

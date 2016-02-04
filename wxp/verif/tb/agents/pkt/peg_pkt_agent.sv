@@ -22,34 +22,36 @@
 /*
  --------------------------------------------------------------------------
  -- Project Code      : pegasus
- -- Component Name    : peg_rmii_rx_agent
+ -- Component Name    : peg_pkt_agent
  -- Author            : mammenx
- -- Function          : This is the RMII RX Agent
+ -- Function          : This is the agent for snooping/driving packet
+                        interfaces.
  --------------------------------------------------------------------------
 */
 
-`ifndef __PEG_peg_rmii_rx_agent
-`define __PEG_peg_rmii_rx_agent
+`ifndef __PEG_PKT_AGENT
+`define __PEG_PKT_AGENT
 
-  class peg_rmii_rx_agent #(  parameter type  PKT_TYPE  = peg_pkt_base,
-                              parameter type  INTF_TYPE = virtual peg_rmii_intf.TB_RX
-                          ) extends ovm_component;
+  class peg_pkt_agent #(parameter DATA_W    = 8,
+                        type      PKT_TYPE  = peg_pkt_base,
+                        type      INTF_TYPE = virtual peg_pkt_intf#(DATA_W)
+                      ) extends ovm_component;
 
     /*  Register with factory */
-    `ovm_component_param_utils(peg_rmii_rx_agent#(PKT_TYPE,INTF_TYPE))
+    `ovm_component_param_utils(peg_pkt_agent#(DATA_W,PKT_TYPE,INTF_TYPE))
 
 
     //Declare Seqr, Drvr, Mon, Sb objects
-    peg_rmii_rx_drvr#(PKT_TYPE,INTF_TYPE)   drvr;
-    peg_rmii_rx_mon#(PKT_TYPE,INTF_TYPE)    mon;
-    peg_rmii_rx_seqr#(PKT_TYPE)             seqr;
+    peg_pkt_drvr#(DATA_W,PKT_TYPE,INTF_TYPE)  drvr;
+    peg_pkt_mon#(DATA_W,PKT_TYPE,INTF_TYPE)   mon;
+    peg_pkt_seqr#(PKT_TYPE)                   seqr;
 
 
     OVM_FILE  f;
 
 
     /*  Constructor */
-    function new(string name  = "peg_rmii_rx_agent", ovm_component parent = null);
+    function new(string name  = "peg_pkt_agent", ovm_component parent = null);
       super.new(name, parent);
     endfunction: new
 
@@ -69,9 +71,9 @@
       ovm_report_info(get_name(),"Start of build ",OVM_LOW);
 
       //Build Seqr, Drvr, Mon, Sb objects using Factory
-      drvr  = peg_rmii_rx_drvr#(PKT_TYPE,INTF_TYPE)::type_id::create("rmii_rx_drvr",  this);
-      mon   = peg_rmii_rx_mon#(PKT_TYPE,INTF_TYPE)::type_id::create("rmii_rx_mon",  this);
-      seqr  = peg_rmii_rx_seqr#(PKT_TYPE)::type_id::create("rmii_rx_seqr",  this);
+      drvr  = peg_pkt_drvr#(DATA_W,PKT_TYPE,INTF_TYPE)::type_id::create("peg_pkt_drvr", this);
+      mon   = peg_pkt_mon#(DATA_W,PKT_TYPE,INTF_TYPE)::type_id::create("peg_pkt_mon", this);
+      seqr  = peg_pkt_seqr#(PKT_TYPE)::type_id::create("peg_pkt_seqr", this);
 
       ovm_report_info(get_name(),"End of build ",OVM_LOW);
     endfunction
@@ -84,7 +86,6 @@
       ovm_report_info(get_name(),"START of connect ",OVM_LOW);
 
         //Make port connections
-        //eg. : mon.Mon2Sb_port.connect(sb.Mon2Sb_port);
         drvr.seq_item_port.connect(seqr.seq_item_export);
 
       ovm_report_info(get_name(),"END of connect ",OVM_LOW);
@@ -100,7 +101,7 @@
 
 
 
-  endclass  : peg_rmii_rx_agent
+  endclass  : peg_pkt_agent
 
 `endif
 

@@ -133,6 +133,9 @@
 
       intf.cb_rx.crs_dv <=  0;
 
+      ovm_report_info({get_name(),"[drive_100]"},$psprintf("Waiting for %1d clocks",pkt.ipg/2),OVM_LOW);
+      repeat(pkt.ipg/2) @(intf.cb_rx);
+
       ovm_report_info({get_name(),"[drive_100]"},"End of drive ",OVM_LOW);
 
     endtask : drive_100
@@ -181,6 +184,8 @@
  
 
  -- <Log>
+
+[04-02-2016  04:04:32 PM][mammenx] Added peg_pkt_agent & RMII SB
 
 [28-05-14 20:18:21] [mammenx] Moved log section to bottom of file
 

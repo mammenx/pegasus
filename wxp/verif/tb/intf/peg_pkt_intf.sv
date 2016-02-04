@@ -22,27 +22,33 @@
 /*
  --------------------------------------------------------------------------
  -- Project Code      : pegasus
- -- Package Name      : peg_tb_common_pkg
+ -- Interface Name    : peg_pkt_intf
  -- Author            : mammenx
- -- Description       : This package contains common resources used by TB.
+ -- Function          : This interface contains all the signals for transferring
+                        packets.
  --------------------------------------------------------------------------
 */
 
-package peg_tb_common_pkg;
+interface peg_pkt_intf  #(parameter WIDTH=8)  (input logic clk, rst_n);
 
-  //Parameters
-  parameter PEG_MAX_FIELD_LEN = 256;
+  //Logic signals
+  logic             valid;
+  logic             sop;
+  logic             eop;
+  logic [WIDTH-1:0] data;
+  logic             ready;
+  logic             error;
 
-  //DPI-C functions
-  import  "DPI-C" function void randBitVec(inout bit arr []);
-  import  "DPI-C" function byte unsigned  randByte();
+  //Wire Signals
 
-  //Data Types
-  typedef bit [PEG_MAX_FIELD_LEN-1:0]   peg_integral_t;
-  typedef enum {PACKET=0,BYTESTREAM=1}  peg_pkt_data_mode_t;
-  typedef enum {MASTER=0,SLAVE=1}       peg_pkt_mode_t;
 
-endpackage  //  peg_tb_common_pkg
+  //Tasks & Functions
+
+
+  //Modports
+
+
+endinterface  //  peg_pkt_intf
 
 /*
  --------------------------------------------------------------------------
@@ -54,7 +60,7 @@ endpackage  //  peg_tb_common_pkg
 
 [04-02-2016  04:04:33 PM][mammenx] Added peg_pkt_agent & RMII SB
 
-[01-02-2016  12:32:18 AM][mammenx] Added DPI-C randomisation support
+[28-05-14 20:18:21] [mammenx] Moved log section to bottom of file
 
  --------------------------------------------------------------------------
 */

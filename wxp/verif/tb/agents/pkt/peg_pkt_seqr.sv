@@ -22,40 +22,34 @@
 /*
  --------------------------------------------------------------------------
  -- Project Code      : pegasus
- -- Component Name    : peg_rmii_rx_agent
+ -- Component Name    : peg_pkt_seqr
  -- Author            : mammenx
- -- Function          : This is the RMII RX Agent
+ -- Function          : This is the sequencer for peg_pkt_agent
  --------------------------------------------------------------------------
 */
 
-`ifndef __PEG_peg_rmii_rx_agent
-`define __PEG_peg_rmii_rx_agent
 
-  class peg_rmii_rx_agent #(  parameter type  PKT_TYPE  = peg_pkt_base,
-                              parameter type  INTF_TYPE = virtual peg_rmii_intf.TB_RX
-                          ) extends ovm_component;
+`ifndef __PEG_PKT_SEQR
+`define __PEG_PKT_SEQR
+
+class peg_pkt_seqr  #(type  PKT_TYPE  = peg_pkt_base
+                    )
+                    extends ovm_sequencer #(PKT_TYPE,PKT_TYPE); //req, rsp
 
     /*  Register with factory */
-    `ovm_component_param_utils(peg_rmii_rx_agent#(PKT_TYPE,INTF_TYPE))
-
-
-    //Declare Seqr, Drvr, Mon, Sb objects
-    peg_rmii_rx_drvr#(PKT_TYPE,INTF_TYPE)   drvr;
-    peg_rmii_rx_mon#(PKT_TYPE,INTF_TYPE)    mon;
-    peg_rmii_rx_seqr#(PKT_TYPE)             seqr;
-
-
+    `ovm_component_param_utils(peg_pkt_seqr#(PKT_TYPE))
+  
     OVM_FILE  f;
 
 
-    /*  Constructor */
-    function new(string name  = "peg_rmii_rx_agent", ovm_component parent = null);
-      super.new(name, parent);
-    endfunction: new
+    /* Constructor  */
+    function new (string name = "peg_pkt_seqr", ovm_component parent);
+        super.new(name, parent);
+    endfunction : new
 
 
     /*  Build */
-    function void build();
+    function  void  build();
       super.build();
 
       f = $fopen({"./logs/",get_full_name(),".log"},  "w");
@@ -68,39 +62,12 @@
 
       ovm_report_info(get_name(),"Start of build ",OVM_LOW);
 
-      //Build Seqr, Drvr, Mon, Sb objects using Factory
-      drvr  = peg_rmii_rx_drvr#(PKT_TYPE,INTF_TYPE)::type_id::create("rmii_rx_drvr",  this);
-      mon   = peg_rmii_rx_mon#(PKT_TYPE,INTF_TYPE)::type_id::create("rmii_rx_mon",  this);
-      seqr  = peg_rmii_rx_seqr#(PKT_TYPE)::type_id::create("rmii_rx_seqr",  this);
 
       ovm_report_info(get_name(),"End of build ",OVM_LOW);
-    endfunction
+    endfunction : build
 
-
-    /*  Connect */
-    function void connect();
-      super.connect();
-
-      ovm_report_info(get_name(),"START of connect ",OVM_LOW);
-
-        //Make port connections
-        //eg. : mon.Mon2Sb_port.connect(sb.Mon2Sb_port);
-        drvr.seq_item_port.connect(seqr.seq_item_export);
-
-      ovm_report_info(get_name(),"END of connect ",OVM_LOW);
-    endfunction
-
-
-    /*  Disable Agent */
-    function  void  disable_agent();
-
-      //Disable sub-components by setting obj.enable to 0, or calling obj.disable_agent() function
-
-    endfunction : disable_agent
-
-
-
-  endclass  : peg_rmii_rx_agent
+ 
+endclass : peg_pkt_seqr
 
 `endif
 
